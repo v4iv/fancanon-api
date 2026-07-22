@@ -1,0 +1,427 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+  runtime  = "workerd"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id
+  name          String
+  email         String
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+
+  username        String?
+  displayUsername String?
+
+  stories      Story[]
+  fandoms      Fandom[]
+  categories   Category[]
+  chapters     Chapter[]
+  likes        Like[]
+  readLaters   ReadLater[]
+  bookmarks    Bookmark[]
+  comments     Comment[]
+  commentLikes CommentLike[]
+
+  followers Follow[] @relation("Followers")
+  following Follow[] @relation("Following")
+
+  feedItems           FeedItem[]
+  notifications       Notification[]
+  activityActor       Activity[]     @relation("activity_actor")
+  activityActorTarget Activity[]     @relation("activity_target")
+  reports             Report[]       @relation("reports")
+  reportsReceived     Report[]       @relation("reports_received")
+  reportsResolved     Report[]       @relation("reports_resolved")
+
+  explicitConsentAt      DateTime?
+  explicitConsentVersion Int?
+
+  @@unique([email])
+  @@unique([username])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  createdById String?
+  createdBy   User?    @relation(fields: [createdById], references: [id])
+  name        String
+  description String?
+  slug        String   @unique
+  meta        Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  fandoms Fandom[]
+
+  @@map("category")
+}
+
+model Fandom {
+  id          String    @id @default(cuid())
+  createdById String?
+  createdBy   User?     @relation(fields: [createdById], references: [id])
+  name        String
+  description String?
+  slug        String    @unique
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  meta        Json?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  stories StoryFandom[]
+
+  @@map("fandom")
+}
+
+model Story {
+  id             String        @id @default(cuid())
+  authorId       String
+  author         User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  title          String
+  description    String?
+  tags           String[]
+  contentRating  ContentRating @default(GENERAL)
+  language       String        @default("english")
+  completed      Boolean       @default(false)
+  // stats
+  likeCount      Int           @default(0)
+  wordCount      Int           @default(0)
+  readLaterCount Int           @default(0)
+  commentCount   Int           @default(0)
+  chapterCount   Int           @default(0)
+  // others
+  meta           Json?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  fandoms    StoryFandom[]
+  chapters   Chapter[]
+  likes      Like[]
+  readLaters ReadLater[]
+  reports    Report[]
+  activities Activity[]
+  storyTags  StoryTag[]
+
+  @@index([createdAt])
+  @@map("story")
+}
+
+model Chapter {
+  id           String   @id @default(cuid())
+  authorId     String
+  author       User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  storyId      String
+  story        Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  chapterIndex Int?
+  title        String
+  content      String
+  meta         Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  bookmarks  Bookmark[]
+  comments   Comment[]
+  reports    Report[]
+  activities Activity[]
+
+  @@unique([storyId, chapterIndex])
+  @@map("chapter")
+}
+
+model StoryFandom {
+  storyId  String
+  story    Story  @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  fandomId String
+  fandom   Fandom @relation(fields: [fandomId], references: [id], onDelete: Cascade)
+
+  @@id([storyId, fandomId])
+  @@map("story_fandom")
+}
+
+model Tag {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  type        TagType  @default(FREEFORM)
+  usageCount  Int      @default(0)
+  synonymOfId String?
+  synonymOf   Tag?     @relation("Synonyms", fields: [synonymOfId], references: [id])
+  synonyms    Tag[]    @relation("Synonyms")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  stories StoryTag[]
+
+  @@map("tag")
+}
+
+model StoryTag {
+  storyId String
+  story   Story  @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  tagId   String
+  tag     Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([storyId, tagId])
+  @@map("story_tag")
+}
+
+model Like {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  storyId   String
+  story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, storyId])
+  @@map("like")
+}
+
+model ReadLater {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  storyId   String
+  story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, storyId])
+  @@map("read_later")
+}
+
+model Follow {
+  followerId String
+  follower   User   @relation("Followers", fields: [followerId], references: [id], onDelete: Cascade)
+  followeeId String
+  followee   User   @relation("Following", fields: [followeeId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followeeId])
+  @@map("follow")
+}
+
+model Bookmark {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chapterId String
+  chapter   Chapter  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, chapterId])
+  @@map("bookmark")
+}
+
+model Comment {
+  id         String   @id @default(cuid())
+  chapterId  String
+  chapter    Chapter  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  authorId   String
+  author     User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content    String
+  parentId   String? // For replies
+  parent     Comment? @relation("Replies", fields: [parentId], references: [id], onDelete: Cascade)
+  //stats
+  likeCount  Int      @default(0)
+  replyCount Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  replies    Comment[]     @relation("Replies")
+  likes      CommentLike[]
+  reports    Report[]
+  activities Activity[]
+
+  @@map("comment")
+}
+
+model CommentLike {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  commentId String
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, commentId])
+  @@map("comment_like")
+}
+
+model Report {
+  id           String  @id @default(cuid())
+  // who filed the report (nullable for guests)
+  reportedById String?
+  reportedBy   User?   @relation("reports", fields: [reportedById], references: [id])
+
+  // what’s being reported
+  storyId String?
+  story   Story?  @relation(fields: [storyId], references: [id], onDelete: Cascade)
+
+  chapterId String?
+  chapter   Chapter? @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  commentId String?
+  comment   Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  userId String?
+  user   User?   @relation("reports_received", fields: [userId], references: [id], onDelete: Cascade)
+
+  // details
+  reason       String // short description or category (“harassment”, “spam”, “copyright”)
+  description  String? // optional longer text
+  status       ReportStatus @default(PENDING)
+  resolvedById String? // which admin handled it
+  resolvedBy   User?        @relation("reports_resolved", fields: [resolvedById], references: [id])
+  resolvedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("report")
+}
+
+model Activity {
+  id      String       @id @default(cuid())
+  actorId String
+  actor   User         @relation("activity_actor", fields: [actorId], references: [id], onDelete: Cascade)
+  verb    ActivityVerb
+
+  // exactly one of these is set, depending on `verb`
+  storyId      String?
+  story        Story?   @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  chapterId    String?
+  chapter      Chapter? @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  commentId    String?
+  comment      Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  targetUserId String? // for USER_FOLLOWED
+  targetUser   User?    @relation("activity_target", fields: [targetUserId], references: [id], onDelete: Cascade)
+
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  feedItems     FeedItem[]
+  notifications Notification[]
+
+  @@index([actorId, createdAt])
+  @@map("activity")
+}
+
+model FeedItem {
+  id         String    @id @default(cuid())
+  ownerId    String // whose feed this shows up in
+  owner      User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  activityId String
+  activity   Activity  @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now()) // denormalized from Activity for fast sort
+  seenAt     DateTime?
+
+  @@unique([ownerId, activityId])
+  @@index([ownerId, createdAt(sort: Desc)])
+  @@map("feed_item")
+}
+
+model Notification {
+  id         String    @id @default(cuid())
+  ownerId    String // whose feed this shows up in
+  owner      User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  activityId String
+  activity   Activity  @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now()) // denormalized from Activity for fast sort
+  seenAt     DateTime?
+
+  @@unique([ownerId, activityId])
+  @@index([ownerId, createdAt(sort: Desc)])
+  @@map("notification")
+}
+
+enum ContentRating {
+  GENERAL
+  TEEN
+  MATURE
+  EXPLICIT
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  RESOLVED
+  REJECTED
+}
+
+enum TagType {
+  FANDOM_FREEFORM
+  RELATIONSHIP
+  CHARACTER
+  WARNING
+  FREEFORM
+}
+
+enum ActivityVerb {
+  STORY_LIKED
+  USER_FOLLOWED
+  REPLY_POSTED
+  COMMENT_LIKED
+  COMMENT_POSTED
+  STORY_PUBLISHED
+  CHAPTER_PUBLISHED
+}
