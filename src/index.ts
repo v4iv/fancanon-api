@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 
 import { AppContext } from "@/lib/types";
-import { auth } from "@/lib/better-auth";
+import { auth } from "@/lib/auth";
 import { tags } from "@/routes/tags";
 import { feed } from "@/routes/feed";
 import { search } from "@/routes/search";

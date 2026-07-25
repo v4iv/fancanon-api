@@ -1,4 +1,4 @@
-import { auth } from "@/lib/better-auth";
+import { auth } from "@/lib/auth";
 import { PrismaClient } from "@/generated/prisma/client";
 
 export type AppContext = {

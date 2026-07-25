@@ -58,6 +58,7 @@ search.get("/", withDatabase, async (c) => {
     },
   ];
 
+  // @ts-expect-error because value has to be parsed from string to JSON
   const fandomIds = JSON.parse(fandoms).map((f: { value: string }) => f.value);
 
   if (fandomIds.length > 0) {

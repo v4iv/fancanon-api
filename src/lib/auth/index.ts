@@ -8,6 +8,17 @@ import { PrismaClient } from "@/generated/prisma/client";
 
 const options = {
   // Additional options that depend on env ...
+  advanced: {
+    crossSubDomainCookies: {
+      enabled: true,
+      domain: ".fancanon.com", // leading dot is required
+    },
+    defaultCookieAttributes: {
+      sameSite: "none",
+      secure: true,
+      httpOnly: true,
+    },
+  },
   emailAndPassword: {
     enabled: true,
   },
@@ -36,6 +47,7 @@ export const auth = (
   env: CloudflareBindings,
 ): ReturnType<typeof betterAuth<any>> => {
   const databaseUrl = env.DATABASE_URL;
+  const trustedOrigins = env.TRUSTED_ORIGINS;
 
   if (!databaseUrl) {
     throw new Error("DATABASE_URL is not set");
@@ -52,6 +64,7 @@ export const auth = (
     database: prismaAdapter(prisma, { provider: "postgresql" }),
     baseURL: env.BETTER_AUTH_URL,
     secret: env.BETTER_AUTH_SECRET,
+    trustedOrigins: trustedOrigins.split(","),
     ...options,
   });
 };
