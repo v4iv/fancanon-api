@@ -1,10 +1,10 @@
 import { Hono } from "hono";
 
 import { AppContext } from "@/lib/types";
+import { auth } from "@/lib/better-auth";
 import { feed } from "@/routes/feed";
 import { tags } from "@/routes/tags";
 import { fandoms } from "@/routes/fandoms";
-import { auth } from "@/lib/better-auth";
 
 const app = new Hono<AppContext>();
 
