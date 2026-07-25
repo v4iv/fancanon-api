@@ -2,7 +2,7 @@
 import { Hono } from "hono";
 
 import { DEFAULT_LIMIT } from "@/lib/constants";
-import withDatabase from "@/lib/db";
+import { withDatabase } from "@/lib/db";
 import { AppContext } from "@/lib/types";
 
 const fandoms = new Hono<AppContext>();

@@ -1,11 +1,11 @@
+import { auth } from "@/lib/better-auth";
 import { PrismaClient } from "@/generated/prisma/client";
 
 export type AppContext = {
-  Bindings: {
-    DATABASE_URL: string;
-    DIRECT_URL: string;
-  };
+  Bindings: CloudflareBindings;
   Variables: {
     db: PrismaClient;
+    user: typeof auth.$Infer.Session.user | null;
+    session: typeof auth.$Infer.Session.session | null;
   };
 };

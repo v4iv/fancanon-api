@@ -8,8 +8,8 @@ import {
   READ_LATER_WEIGHT,
   TRENDING_GRAVITY,
 } from "@/lib/constants";
-import withDatabase from "@/lib/db";
 import { AppContext } from "@/lib/types";
+import { withDatabase } from "@/lib/db";
 
 const feed = new Hono<AppContext>();
 
@@ -19,6 +19,8 @@ feed.get("/hot", withDatabase, async (c) => {
   const offset = (DEFAULT_PAGE - 1) * DEFAULT_LIMIT;
 
   const db = c.get("db");
+
+  const user = c.get("user");
 
   try {
     // rank = score / (age_in_hours + 2) ^ gravity — Hacker-News-style decay.
@@ -64,6 +66,14 @@ feed.get("/hot", withDatabase, async (c) => {
         },
         fandoms: {
           select: { fandom: { select: { id: true, name: true, slug: true } } },
+        },
+        likes: {
+          where: { userId: user?.id },
+          select: { userId: true, storyId: true },
+        },
+        readLaters: {
+          where: { userId: user?.id },
+          select: { userId: true, storyId: true },
         },
       },
     });

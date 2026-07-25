@@ -4,8 +4,13 @@ import { AppContext } from "@/lib/types";
 import { feed } from "@/routes/feed";
 import { tags } from "@/routes/tags";
 import { fandoms } from "@/routes/fandoms";
+import { auth } from "@/lib/better-auth";
 
 const app = new Hono<AppContext>();
+
+app.on(["GET", "POST"], "/api/auth/*", (c) => {
+  return auth(c.env).handler(c.req.raw);
+});
 
 app.get("/", (c) => {
   return c.text("Hello fancanon! 🍀");

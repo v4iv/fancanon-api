@@ -22,4 +22,4 @@ function withDatabase(c: Context, next: Next) {
   return next();
 }
 
-export default withDatabase;
+export { withDatabase };
