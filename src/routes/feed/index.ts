@@ -58,6 +58,7 @@ feed.get("/hot", withDatabase, async (c) => {
     }
 
     const storyIds = rankedStories.map((s) => s.id);
+
     const scoreMap = Object.fromEntries(
       rankedStories.map((s) => [s.id, s.score]),
     );
