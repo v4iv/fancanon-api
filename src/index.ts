@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 
 import { AppContext } from "@/lib/types";
 import { auth } from "@/lib/auth";
@@ -9,6 +10,16 @@ import { stories } from "@/routes/stories";
 import { fandoms } from "@/routes/fandoms";
 
 const app = new Hono<AppContext>();
+
+app.use("*", async (c, next) => {
+  const trustedOrigins = c.env.TRUSTED_ORIGINS;
+
+  const corsMiddlewareHandler = cors({
+    origin: trustedOrigins.split(","),
+  });
+
+  return corsMiddlewareHandler(c, next);
+});
 
 app.use("*", async (c, next) => {
   const session = await auth(c.env).api.getSession({
