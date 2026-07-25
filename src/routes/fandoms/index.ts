@@ -10,9 +10,9 @@ import {
   hydrateRankedStories,
 } from "@/lib/utils";
 
-const fandoms = new Hono<AppContext>();
+const app = new Hono<AppContext>();
 
-fandoms.get("/search", withDatabase, async (c) => {
+app.get("/search", withDatabase, async (c) => {
   const query = c.req.query("q") as string;
   const limit = parseInt(c.req.query("limit") ?? `${DEFAULT_LIMIT}`);
 
@@ -76,7 +76,7 @@ fandoms.get("/search", withDatabase, async (c) => {
   }
 });
 
-fandoms.get("/:slug", withDatabase, async (c) => {
+app.get("/:slug", withDatabase, async (c) => {
   const page = parseInt(c.req.query("page") ?? `${DEFAULT_PAGE}`);
   const limit = parseInt(c.req.query("limit") ?? `${DEFAULT_LIMIT}`);
   const offset = (page - 1) * limit;
@@ -191,4 +191,4 @@ fandoms.get("/:slug", withDatabase, async (c) => {
   }
 });
 
-export { fandoms };
+export { app as fandoms };

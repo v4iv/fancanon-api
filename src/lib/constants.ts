@@ -67,3 +67,70 @@ export const RESTRICTED_USERNAMES: readonly [string, ...string[]] = [
   "shop",
   "guest",
 ];
+
+export const OFFENSIVE_WORDS: readonly [string, ...string[]] = [
+  "beaners",
+  "chinks",
+  "dindunuffin",
+  "niggers",
+  "gooks",
+  "spics",
+  "dickhead",
+  "tranny",
+  "wetback",
+  "coons",
+  "14/88",
+  "dindu nuffins",
+  "dindunuffins",
+  "niglets",
+  "porch monkeys",
+  "gook",
+  "spic",
+  "niglet",
+  "kike",
+  "ragheads",
+  "coon",
+  "chink",
+  "kikes",
+  "dindu nuffin",
+  "raghead",
+  "jigaboos",
+  "fags",
+  "porch monkey",
+  "pajeet",
+  "pajeets",
+  "nigger",
+  "jigaboo",
+  "faggot",
+  "faggots",
+  "beaner",
+  "kneegrow",
+  "niggar",
+  "knee grow",
+  "wetbacks",
+  "nigg3r",
+  "fag",
+];
+
+export const RESTRICTED_WORDS = new Set(OFFENSIVE_WORDS);
+
+export const LEETSPEAK_MAP: Record<string, string> = {
+  "0": "o",
+  "1": "i",
+  "2": "z",
+  "3": "e",
+  "4": "a",
+  "5": "s",
+  "6": "g",
+  "7": "t",
+  "8": "b",
+  "9": "g",
+  "@": "a",
+  $: "s",
+  "!": "i",
+  "+": "t",
+};
+
+export const RELATIONSHIP_SEPARATOR = /\/|&/;
+
+export const NO_WARNING_CHOSEN_TAG_NAME = "author chose not to use warnings";

@@ -1,9 +1,12 @@
-import { Prisma, type PrismaClient } from "@/generated/prisma/client";
+import slug from "slug";
+
 import {
   LIKES_WEIGHT,
+  NO_WARNING_CHOSEN_TAG_NAME,
   READ_LATER_WEIGHT,
   TRENDING_GRAVITY,
 } from "@/lib/constants";
+import { Prisma, TagType, type PrismaClient } from "@/generated/prisma/client";
 
 /**
  * Returns story ids + decayed rank scores for stories matching an arbitrary
@@ -112,4 +115,174 @@ export async function hydrateRankedStories(
       return story ? { ...story, score: scoreMap[id] } : null;
     })
     .filter((s) => s !== null);
+}
+
+export async function fanoutActivity(db: PrismaClient, activityId: string) {
+  const activity = await db.activity.findUniqueOrThrow({
+    where: { id: activityId },
+  });
+
+  const followers = await db.follow.findMany({
+    where: { followeeId: activity.actorId },
+    select: { followerId: true },
+  });
+
+  if (followers.length === 0) return;
+
+  await db.feedItem.createMany({
+    data: followers.map((f) => ({
+      ownerId: f.followerId,
+      activityId: activity.id,
+      createdAt: activity.createdAt,
+    })),
+    skipDuplicates: true,
+  });
+}
+
+slug.charmap["/"] = "-";
+slug.charmap["&"] = "-";
+
+type PrismaClientLike = PrismaClient | Prisma.TransactionClient;
+
+async function resolveWarningTags(
+  client: PrismaClientLike,
+  warningNames: string[],
+) {
+  const names =
+    warningNames.length > 0 ? warningNames : [NO_WARNING_CHOSEN_TAG_NAME];
+  // warnings are admin-seeded only — findMany, never upsert/create here
+  const tags = await client.tag.findMany({
+    where: { name: { in: names }, type: "WARNING" },
+    select: { id: true },
+  });
+  return tags.map((t: { id: string }) => t.id);
+}
+
+async function resolveTags(
+  client: PrismaClientLike,
+  tagNames: string[],
+  type: TagType,
+) {
+  const normalized = [
+    ...new Set(tagNames.map((t) => t.trim()).filter(Boolean)),
+  ];
+  if (normalized.length === 0) return [];
+
+  // one batched insert, skip any that already exist by unique `name` —
+  // replaces the old N-upserts-in-a-Promise.all, which was the source
+  // of the transaction timeout: each upsert was its own round-trip
+  await client.tag.createMany({
+    data: normalized.map((name) => ({ name, slug: slug(name), type })),
+    skipDuplicates: true,
+  });
+
+  // one more round-trip to fetch ids for both newly-created and
+  // pre-existing tags
+  const tags = await client.tag.findMany({
+    where: { name: { in: normalized } },
+    select: { id: true },
+  });
+
+  return tags.map((t: { id: string }) => t.id);
+}
+
+type ResolvedTagIds = {
+  relationshipIds: string[];
+  characterIds: string[];
+  freeformIds: string[];
+  warningIds: string[];
+};
+
+/**
+ * Resolves tag names -> tag ids. Runs against the plain client, NOT inside
+ * a transaction — tag resolution is idempotent (Tag.name is @unique, so
+ * concurrent createMany+skipDuplicates calls are race-safe on their own)
+ * and has no correctness dependency on the Story row existing yet. Keeping
+ * this outside $transaction is what keeps the actual transaction short
+ * enough to stay under Prisma's interactive-transaction timeout.
+ */
+export async function resolveStoryTagIds(
+  db: PrismaClient,
+  tags: {
+    relationshipTags: string[];
+    characterTags: string[];
+    freeformTags: string[];
+    warningTags: string[];
+  },
+): Promise<ResolvedTagIds> {
+  const [relationshipIds, characterIds, freeformIds, warningIds] =
+    await Promise.all([
+      resolveTags(db, tags.relationshipTags, "RELATIONSHIP"),
+      resolveTags(db, tags.characterTags, "CHARACTER"),
+      resolveTags(db, tags.freeformTags, "FREEFORM"),
+      resolveWarningTags(db, tags.warningTags),
+    ]);
+  return { relationshipIds, characterIds, freeformIds, warningIds };
+}
+
+/** Call after resolveStoryTagIds, inside the transaction, for a brand-new story. */
+export async function createStoryTagLinks(
+  tx: Prisma.TransactionClient,
+  storyId: string,
+  resolved: ResolvedTagIds,
+) {
+  const allTagIds = [
+    ...resolved.relationshipIds,
+    ...resolved.characterIds,
+    ...resolved.freeformIds,
+    ...resolved.warningIds,
+  ];
+
+  if (allTagIds.length > 0) {
+    await tx.storyTag.createMany({
+      data: allTagIds.map((tagId) => ({ storyId, tagId })),
+      skipDuplicates: true,
+    });
+    await tx.tag.updateMany({
+      where: { id: { in: allTagIds } },
+      data: { usageCount: { increment: 1 } },
+    });
+  }
+}
+
+/** Call after resolveStoryTagIds, inside the transaction, for an edited story. */
+export async function syncStoryTagLinks(
+  tx: Prisma.TransactionClient,
+  storyId: string,
+  resolved: ResolvedTagIds,
+) {
+  const desiredTagIds = new Set([
+    ...resolved.relationshipIds,
+    ...resolved.characterIds,
+    ...resolved.freeformIds,
+    ...resolved.warningIds,
+  ]);
+
+  const existing = await tx.storyTag.findMany({
+    where: { storyId },
+    select: { tagId: true },
+  });
+  const existingTagIds = new Set(existing.map((st) => st.tagId));
+
+  const toAdd = [...desiredTagIds].filter((id) => !existingTagIds.has(id));
+  const toRemove = [...existingTagIds].filter((id) => !desiredTagIds.has(id));
+
+  if (toRemove.length > 0) {
+    await tx.storyTag.deleteMany({
+      where: { storyId, tagId: { in: toRemove } },
+    });
+    await tx.tag.updateMany({
+      where: { id: { in: toRemove } },
+      data: { usageCount: { decrement: 1 } },
+    });
+  }
+  if (toAdd.length > 0) {
+    await tx.storyTag.createMany({
+      data: toAdd.map((tagId) => ({ storyId, tagId })),
+    });
+    await tx.tag.updateMany({
+      where: { id: { in: toAdd } },
+      data: { usageCount: { increment: 1 } },
+    });
+  }
 }

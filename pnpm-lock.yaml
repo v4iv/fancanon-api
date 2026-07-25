@@ -26,6 +26,9 @@ importers:
       pg:
         specifier: ^8.22.0
         version: 8.22.0
+      slug:
+        specifier: ^12.0.1
+        version: 12.0.1
     devDependencies:
       '@types/node':
         specifier: ^26.1.1
@@ -33,6 +36,9 @@ importers:
       '@types/pg':
         specifier: ^8.20.0
         version: 8.20.0
+      '@types/slug':
+        specifier: ^5.0.9
+        version: 5.0.9
       prisma:
         specifier: ^7.9.0
         version: 7.9.0(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -723,6 +729,9 @@ packages:
   '@types/react@19.2.17':
     resolution: {integrity: sha512-MXfmqaVPEVgkBT/aY0aGCkRWWtByiYQXo3xdQ8r5RzuFrPiRn8Gar2tQdXSUQ2GKV3bkXckek89V8wQBY2Q/Aw==}
 
+  '@types/slug@5.0.9':
+    resolution: {integrity: sha512-6Yp8BSplP35Esa/wOG1wLNKiqXevpQTEF/RcL/NV6BBQaMmZh4YlDwCgrrFSoUE4xAGvnKd5c+lkQJmPrBAzfQ==}
+
   '@visx/curve@4.0.1-alpha.0':
     resolution: {integrity: sha512-jRu61Uz274pV1zyioXmboyrLutYbnKsgjj4njSGCnhdXj5GkZvZbg+ThDb6oOzoAnJOBRLz4rzPlWvNJOzuVMg==}
 
@@ -1251,6 +1260,10 @@ packages:
   signal-exit@4.1.0:
     resolution: {integrity: sha512-bzyZ1e88w9O1iNJbKnOlvYTrWPDl46O1bG0D3XInv+9tkPrxrN8jUUTiFlDkkmKWgn1M6CfIA13SuGqOa9Korw==}
     engines: {node: '>=14'}
+
+  slug@12.0.1:
+    resolution: {integrity: sha512-p8lJZLw/5GDmxXO3FKjiOYjiBMFGDc+/8DgutoXKqjn8KX7buzbkX1unEavO7T+GHGLTOyeb7VjWTRWpb8wmuQ==}
+    hasBin: true
 
   split2@4.2.0:
     resolution: {integrity: sha512-UcjcJOWknrNkF6PLX83qcHM6KHgVKNkV62Y8a5uYDVv9ydGQVwAHMKqHdJje1VTWpljG0WYpCDhrCdAOYH4TWg==}
@@ -1853,6 +1866,8 @@ snapshots:
     dependencies:
       csstype: 3.2.3
 
+  '@types/slug@5.0.9': {}
+
   '@visx/curve@4.0.1-alpha.0':
     dependencies:
       '@visx/vendor': 4.0.0-alpha.0
@@ -2389,6 +2404,8 @@ snapshots:
   signal-exit@3.0.7: {}
 
   signal-exit@4.1.0: {}
+
+  slug@12.0.1: {}
 
   split2@4.2.0: {}
 

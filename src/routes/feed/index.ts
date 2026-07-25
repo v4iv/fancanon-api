@@ -16,9 +16,9 @@ import {
 import { withDatabase } from "@/lib/db";
 import { Prisma } from "@/generated/prisma/client";
 
-const feed = new Hono<AppContext>();
+const app = new Hono<AppContext>();
 
-feed.get("/hot", withDatabase, async (c) => {
+app.get("/hot", withDatabase, async (c) => {
   const page = parseInt(c.req.query("page") ?? `${DEFAULT_PAGE}`);
   const limit = parseInt(c.req.query("limit") ?? `${DEFAULT_LIMIT}`);
   const offset = (page - 1) * limit;
@@ -114,7 +114,7 @@ feed.get("/hot", withDatabase, async (c) => {
   }
 });
 
-feed.get("/new", withDatabase, async (c) => {
+app.get("/new", withDatabase, async (c) => {
   const page = parseInt(c.req.query("page") ?? `${DEFAULT_PAGE}`);
   const limit = parseInt(c.req.query("limit") ?? `${DEFAULT_LIMIT}`);
   const offset = (page - 1) * limit;
@@ -171,7 +171,7 @@ feed.get("/new", withDatabase, async (c) => {
   }
 });
 
-feed.get("/:slug", withDatabase, async (c) => {
+app.get("/:slug", withDatabase, async (c) => {
   const page = parseInt(c.req.query("page") ?? `${DEFAULT_PAGE}`);
   const limit = parseInt(c.req.query("limit") ?? `${DEFAULT_LIMIT}`);
   const offset = (page - 1) * limit;
@@ -266,4 +266,4 @@ feed.get("/:slug", withDatabase, async (c) => {
   }
 });
 
-export { feed };
+export { app as feed };

@@ -19,6 +19,20 @@ const options = {
       httpOnly: true,
     },
   },
+  user: {
+    additionalFields: {
+      explicitConsentAt: {
+        type: "date",
+        required: false,
+        defaultValue: null,
+      },
+      explicitConsentVersion: {
+        type: "number",
+        required: false,
+        defaultValue: null,
+      },
+    },
+  },
   emailAndPassword: {
     enabled: true,
   },

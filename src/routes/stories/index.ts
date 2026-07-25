@@ -3,9 +3,9 @@ import { Hono } from "hono";
 import { withDatabase } from "@/lib/db";
 import { AppContext } from "@/lib/types";
 
-const stories = new Hono<AppContext>();
+const app = new Hono<AppContext>();
 
-stories.get("/", withDatabase, async (c) => {
+app.get("/", withDatabase, async (c) => {
   const db = c.get("db");
   const user = c.get("user");
 
@@ -29,7 +29,7 @@ stories.get("/", withDatabase, async (c) => {
   }
 });
 
-stories.get("/:storyId", withDatabase, async (c) => {
+app.get("/:storyId", withDatabase, async (c) => {
   const storyId = c.req.param("storyId");
 
   const db = c.get("db");
@@ -66,7 +66,7 @@ stories.get("/:storyId", withDatabase, async (c) => {
   }
 });
 
-stories.get("/:storyId/chapters", withDatabase, async (c) => {
+app.get("/:storyId/chapters", withDatabase, async (c) => {
   const storyId = c.req.param("storyId");
 
   const db = c.get("db");
@@ -92,4 +92,4 @@ stories.get("/:storyId/chapters", withDatabase, async (c) => {
   }
 });
 
-export { stories };
+export { app as stories };

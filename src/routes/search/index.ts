@@ -5,9 +5,9 @@ import { withDatabase } from "@/lib/db";
 import { AppContext } from "@/lib/types";
 import { Prisma } from "@/generated/prisma/client";
 
-const search = new Hono<AppContext>();
+const app = new Hono<AppContext>();
 
-search.get("/", withDatabase, async (c) => {
+app.get("/", withDatabase, async (c) => {
   const query = c.req.query("q") as string;
   const page = parseInt(c.req.query("page") ?? `${DEFAULT_PAGE}`);
   const limit = parseInt(c.req.query("limit") ?? `${DEFAULT_LIMIT}`);
@@ -148,4 +148,4 @@ search.get("/", withDatabase, async (c) => {
   }
 });
 
-export { search };
+export { app as search };
