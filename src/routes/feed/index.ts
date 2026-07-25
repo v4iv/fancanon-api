@@ -14,8 +14,8 @@ import { AppContext } from "@/lib/types";
 const feed = new Hono<AppContext>();
 
 feed.get("/hot", withDatabase, async (c) => {
-  const page = parseInt(c.req.param("page") ?? `${DEFAULT_PAGE}`);
-  const limit = parseInt(c.req.param("limit") ?? `${DEFAULT_LIMIT}`);
+  const page = parseInt(c.req.query("page") ?? `${DEFAULT_PAGE}`);
+  const limit = parseInt(c.req.query("limit") ?? `${DEFAULT_LIMIT}`);
   const offset = (DEFAULT_PAGE - 1) * DEFAULT_LIMIT;
 
   const db = c.get("db");
