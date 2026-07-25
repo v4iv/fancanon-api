@@ -1,4 +1,3 @@
-// authors.ts
 import { Hono } from "hono";
 
 import { AppContext } from "@/lib/types";
@@ -103,63 +102,6 @@ feed.get("/hot", withDatabase, async (c) => {
       {
         success: true,
         stories: sortedStories,
-        currentPage: page,
-        next: nextPage,
-        totalPages,
-        hasMore,
-      },
-      { status: 200 },
-    );
-  } catch (err) {
-    console.error(err);
-  }
-});
-
-feed.get("/new", withDatabase, async (c) => {
-  const page = parseInt(c.req.query("page") ?? `${DEFAULT_PAGE}`);
-  const limit = parseInt(c.req.query("limit") ?? `${DEFAULT_LIMIT}`);
-  const offset = (page - 1) * limit;
-
-  const db = c.get("db");
-
-  const user = c.get("user");
-  const userId = user?.id ?? "";
-
-  try {
-    const stories = await db.story.findMany({
-      orderBy: { createdAt: "desc" },
-      take: limit,
-      skip: offset,
-      include: {
-        author: { select: { id: true, username: true } },
-        storyTags: {
-          select: {
-            tag: { select: { id: true, name: true, slug: true, type: true } },
-          },
-        },
-        fandoms: {
-          select: { fandom: { select: { id: true, name: true, slug: true } } },
-        },
-        likes: {
-          where: { userId },
-          select: { userId: true, storyId: true },
-        },
-        readLaters: {
-          where: { userId },
-          select: { userId: true, storyId: true },
-        },
-      },
-    });
-
-    const totalCount = await db.story.count();
-    const totalPages = Math.ceil(totalCount / limit);
-    const hasMore = page < totalPages;
-    const nextPage = hasMore ? page + 1 : null;
-
-    return c.json(
-      {
-        success: true,
-        stories,
         currentPage: page,
         next: nextPage,
         totalPages,

@@ -1,4 +1,3 @@
-// authors.ts
 import { Hono } from "hono";
 
 import { DEFAULT_LIMIT, DEFAULT_PAGE } from "@/lib/constants";

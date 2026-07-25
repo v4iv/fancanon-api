@@ -5,6 +5,7 @@ import { auth } from "@/lib/better-auth";
 import { tags } from "@/routes/tags";
 import { feed } from "@/routes/feed";
 import { search } from "@/routes/search";
+import { stories } from "@/routes/stories";
 import { fandoms } from "@/routes/fandoms";
 
 const app = new Hono<AppContext>();
@@ -14,13 +15,14 @@ app.on(["GET", "POST"], "/api/auth/*", (c) => {
 });
 
 app.get("/", (c) => {
-  return c.text("Hello fancanon! 🍀");
+  return c.text("🍀 fancanon 🍀");
 });
 
 // routes
 app.route("/api/tags", tags);
 app.route("/api/feed", feed);
 app.route("/api/search", search);
+app.route("/api/stories", stories);
 app.route("/api/fandoms", fandoms);
 
 export default app;
