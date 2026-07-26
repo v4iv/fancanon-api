@@ -8,17 +8,6 @@ import { PrismaClient } from "@/generated/prisma/client";
 
 const options = {
   // Additional options that depend on env ...
-  advanced: {
-    crossSubDomainCookies: {
-      enabled: true,
-      domain: ".fancanon.com", // leading dot is required
-    },
-    defaultCookieAttributes: {
-      sameSite: "none",
-      secure: true,
-      httpOnly: true,
-    },
-  },
   user: {
     additionalFields: {
       explicitConsentAt: {
@@ -79,6 +68,16 @@ export const auth = (
     baseURL: env.BETTER_AUTH_URL,
     secret: env.BETTER_AUTH_SECRET,
     trustedOrigins: trustedOrigins.split(","),
+    advanced: {
+      crossSubDomainCookies: {
+        enabled: true,
+      },
+      defaultCookieAttributes: {
+        sameSite: "none",
+        secure: true,
+        httpOnly: true,
+      },
+    },
     ...options,
   });
 };

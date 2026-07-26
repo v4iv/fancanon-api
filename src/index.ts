@@ -16,6 +16,7 @@ app.use("*", async (c, next) => {
 
   const corsMiddlewareHandler = cors({
     origin: trustedOrigins.split(","),
+    credentials: true,
   });
 
   return corsMiddlewareHandler(c, next);
