@@ -1,51 +1,50 @@
-import { Hono } from "hono";
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { Hono } from 'hono'
+import { and, desc, eq, inArray, sql } from 'drizzle-orm'
 
-import { AppContext } from "@/lib/types";
-import { withDatabase } from "@/lib/db";
+import { AppContext } from '@/lib/types'
+import { withDatabase } from '@/lib/db'
 import {
   DEFAULT_LIMIT,
   DEFAULT_PAGE,
   LIKES_WEIGHT,
   READ_LATER_WEIGHT,
   TRENDING_GRAVITY,
-} from "@/lib/constants";
-import {
-  category,
-  fandom,
-  like,
-  readLater,
-  story,
-  storyFandom,
-} from "@/lib/db/schema";
+} from '@/lib/constants'
+import { category, fandom, like, readLater, story, storyFandom } from '@/lib/db/schema'
 import {
   buildStoryFilterSql,
   getRankedStories,
   hydrateRankedStories,
-} from "@/lib/helpers/feed-helper";
-import { storyWithForUser } from "@/lib/helpers/story-helper";
+} from '@/lib/helpers/feed-helper'
+import { storyWithForUser } from '@/lib/helpers/story-helper'
 
-const app = new Hono<AppContext>();
+const app = new Hono<AppContext>()
 
-app.get("/new", withDatabase, async (c) => {
-  const page = parseInt(c.req.query("page") ?? `${DEFAULT_PAGE}`);
-  const limit = parseInt(c.req.query("limit") ?? `${DEFAULT_LIMIT}`);
+/**
+ * GET /new
+ *
+ * Fetches a paginated list of the most recently published stories sorted by creation date.
+ *
+ * @route GET /new
+ * @query {number} [page=1] - Page number for pagination (minimum: 1).
+ * @query {number} [limit=20] - Number of stories to return per page (1-100).
+ * @returns {200} JSON object containing paginated stories and navigation metadata.
+ * @returns {400} JSON error if pagination parameters are invalid.
+ * @returns {500} JSON error on internal server failure.
+ */
+app.get('/new', withDatabase, async (c) => {
+  const page = parseInt(c.req.query('page') ?? `${DEFAULT_PAGE}`)
+  const limit = parseInt(c.req.query('limit') ?? `${DEFAULT_LIMIT}`)
 
-  if (
-    !Number.isInteger(page) ||
-    page < 1 ||
-    !Number.isInteger(limit) ||
-    limit < 1 ||
-    limit > 100
-  ) {
-    return c.json({ success: false }, { status: 400 });
+  if (!Number.isInteger(page) || page < 1 || !Number.isInteger(limit) || limit < 1 || limit > 100) {
+    return c.json({ success: false }, { status: 400 })
   }
 
-  const db = c.get("db");
+  const db = c.get('db')
 
-  const user = c.get("user");
-  const userId = user?.id ?? "";
-  const offset = (page - 1) * limit;
+  const user = c.get('user')
+  const userId = user?.id ?? ''
+  const offset = (page - 1) * limit
 
   try {
     const latest = await db.query.story.findMany({
@@ -53,15 +52,15 @@ app.get("/new", withDatabase, async (c) => {
       limit,
       offset,
       with: storyWithForUser(userId),
-    });
+    })
 
     const [{ count: totalCount }] = await db
       .select({ count: sql<number>`count(*)`.mapWith(Number) })
-      .from(story);
+      .from(story)
 
-    const totalPages = Math.ceil(totalCount / limit);
-    const hasMore = page < totalPages;
-    const nextPage = hasMore ? page + 1 : null;
+    const totalPages = Math.ceil(totalCount / limit)
+    const hasMore = page < totalPages
+    const nextPage = hasMore ? page + 1 : null
 
     return c.json(
       {
@@ -73,38 +72,45 @@ app.get("/new", withDatabase, async (c) => {
         hasMore,
       },
       { status: 200 },
-    );
+    )
   } catch (err) {
-    console.error(err);
-    return c.json({ success: false }, { status: 500 });
+    console.error(err)
+    return c.json({ success: false }, { status: 500 })
   }
-});
+})
 
-app.get("/hot", withDatabase, async (c) => {
-  const page = parseInt(c.req.query("page") ?? `${DEFAULT_PAGE}`);
-  const limit = parseInt(c.req.query("limit") ?? `${DEFAULT_LIMIT}`);
+/**
+ * GET /hot
+ *
+ * Fetches globally trending stories ordered by a Hacker-News-style time-decay score.
+ * Score is calculated using weighted user interactions (likes, read laters) relative to story age.
+ *
+ * @route GET /hot
+ * @query {number} [page=1] - Page number for pagination (minimum: 1).
+ * @query {number} [limit=20] - Number of stories per page (1-100).
+ * @returns {200} JSON object with decay-ranked stories and pagination metadata.
+ * @returns {400} JSON error if pagination parameters are invalid.
+ * @returns {500} JSON error on internal server failure.
+ */
+app.get('/hot', withDatabase, async (c) => {
+  const page = parseInt(c.req.query('page') ?? `${DEFAULT_PAGE}`)
+  const limit = parseInt(c.req.query('limit') ?? `${DEFAULT_LIMIT}`)
 
-  if (
-    !Number.isInteger(page) ||
-    page < 1 ||
-    !Number.isInteger(limit) ||
-    limit < 1 ||
-    limit > 100
-  ) {
-    return c.json({ success: false }, { status: 400 });
+  if (!Number.isInteger(page) || page < 1 || !Number.isInteger(limit) || limit < 1 || limit > 100) {
+    return c.json({ success: false }, { status: 400 })
   }
 
-  const db = c.get("db");
+  const db = c.get('db')
 
-  const user = c.get("user");
-  const userId = user?.id ?? "";
-  const offset = (page - 1) * limit;
+  const user = c.get('user')
+  const userId = user?.id ?? ''
+  const offset = (page - 1) * limit
 
   try {
     // rank = score / (age_in_hours + 2) ^ gravity — Hacker-News-style decay.
     // No hard time cutoff: a story that goes viral weeks after publishing
     // can still surface, decay alone determines what's "hot" right now.
-    const weightedScore = sql`(${story.likeCount} * ${LIKES_WEIGHT} + ${story.readLaterCount} * ${READ_LATER_WEIGHT})`;
+    const weightedScore = sql`(${story.likeCount} * ${LIKES_WEIGHT} + ${story.readLaterCount} * ${READ_LATER_WEIGHT})`
 
     const rankedStories = await getRankedStories({
       db,
@@ -112,7 +118,7 @@ app.get("/hot", withDatabase, async (c) => {
       gravity: TRENDING_GRAVITY,
       limit,
       offset,
-    });
+    })
 
     if (rankedStories.length === 0) {
       return c.json({
@@ -122,13 +128,11 @@ app.get("/hot", withDatabase, async (c) => {
         next: null,
         totalPages: 1,
         hasMore: false,
-      });
+      })
     }
 
-    const storyIds = rankedStories.map((s) => s.id);
-    const scoreMap = Object.fromEntries(
-      rankedStories.map((s) => [s.id, s.score]),
-    );
+    const storyIds = rankedStories.map((s) => s.id)
+    const scoreMap = Object.fromEntries(rankedStories.map((s) => [s.id, s.score]))
 
     const stories = await db.query.story.findMany({
       where: inArray(story.id, storyIds),
@@ -153,23 +157,23 @@ app.get("/hot", withDatabase, async (c) => {
           columns: { userId: true, storyId: true },
         },
       },
-    });
+    })
 
-    const storyMap = new Map(stories.map((s) => [s.id, s]));
+    const storyMap = new Map(stories.map((s) => [s.id, s]))
     const sortedStories = storyIds
       .map((id) => {
-        const s = storyMap.get(id);
-        return s ? { ...s, score: scoreMap[id] } : null;
+        const s = storyMap.get(id)
+        return s ? { ...s, score: scoreMap[id] } : null
       })
-      .filter((s) => s !== null);
+      .filter((s) => s !== null)
 
     const [{ count: totalCount }] = await db
       .select({ count: sql<number>`count(*)`.mapWith(Number) })
-      .from(story);
+      .from(story)
 
-    const totalPages = Math.ceil(totalCount / limit);
-    const hasMore = page < totalPages;
-    const nextPage = hasMore ? page + 1 : null;
+    const totalPages = Math.ceil(totalCount / limit)
+    const hasMore = page < totalPages
+    const nextPage = hasMore ? page + 1 : null
 
     return c.json(
       {
@@ -181,45 +185,57 @@ app.get("/hot", withDatabase, async (c) => {
         hasMore,
       },
       { status: 200 },
-    );
+    )
   } catch (err) {
-    console.error(err);
-    return c.json({ success: false }, { status: 500 });
+    console.error(err)
+    return c.json({ success: false }, { status: 500 })
   }
-});
+})
 
-app.get("/:slug", withDatabase, async (c) => {
-  const page = parseInt(c.req.query("page") ?? `${DEFAULT_PAGE}`);
-  const limit = parseInt(c.req.query("limit") ?? `${DEFAULT_LIMIT}`);
-  const languages = c.req.queries("languages");
-  const completion = c.req.query("completion");
-  const contentRating = c.req.queries("contentRating");
-  const slug = c.req.param("slug") as string;
+/**
+ * GET /:slug
+ *
+ * Fetches a decay-ranked trending feed for stories within a specific category.
+ * Supports additional filtering by language, completion status, and content rating.
+ *
+ * @route GET /:slug
+ * @param {string} slug - Unique URL slug for the target category.
+ * @query {number} [page=1] - Page number for pagination (minimum: 1).
+ * @query {number} [limit=20] - Number of stories per page (1-100).
+ * @query {string[]} [languages] - Optional array of ISO language codes to filter by.
+ * @query {string} [completion] - Filter by completion state (e.g. "complete", "in_progress").
+ * @query {string[]} [contentRating] - Optional array of target content ratings.
+ * @returns {200} JSON object containing category-filtered stories ranked by trend score.
+ * @returns {400} JSON error if pagination parameters are invalid.
+ * @returns {404} JSON error if the requested category slug does not exist.
+ * @returns {500} JSON error on internal server failure.
+ */
+app.get('/:slug', withDatabase, async (c) => {
+  const page = parseInt(c.req.query('page') ?? `${DEFAULT_PAGE}`)
+  const limit = parseInt(c.req.query('limit') ?? `${DEFAULT_LIMIT}`)
+  const languages = c.req.queries('languages')
+  const completion = c.req.query('completion')
+  const contentRating = c.req.queries('contentRating')
+  const slug = c.req.param('slug') as string
 
-  if (
-    !Number.isInteger(page) ||
-    page < 1 ||
-    !Number.isInteger(limit) ||
-    limit < 1 ||
-    limit > 100
-  ) {
-    return c.json({ success: false }, { status: 400 });
+  if (!Number.isInteger(page) || page < 1 || !Number.isInteger(limit) || limit < 1 || limit > 100) {
+    return c.json({ success: false }, { status: 400 })
   }
 
-  const db = c.get("db");
+  const db = c.get('db')
 
   const categoryRow = await db.query.category.findFirst({
     where: eq(category.slug, slug),
     columns: { id: true },
-  });
+  })
 
   if (!categoryRow) {
-    return c.json({ success: false }, { status: 404 });
+    return c.json({ success: false }, { status: 404 })
   }
 
-  const user = c.get("user");
-  const userId = user?.id ?? "";
-  const offset = (page - 1) * limit;
+  const user = c.get('user')
+  const userId = user?.id ?? ''
+  const offset = (page - 1) * limit
 
   // stories whose fandom belongs to this category — merged across every
   // fandom in the category, ranked as one decay-sorted list (not grouped
@@ -228,17 +244,15 @@ app.get("/:slug", withDatabase, async (c) => {
 		SELECT 1 FROM story_fandom sf
 		JOIN fandom f ON f.id = sf.fandom_id
 		WHERE sf.story_id = ${story.id} AND f.category_id = ${categoryRow.id}
-	)`;
+	)`
 
   const filterWhere = buildStoryFilterSql({
     languages,
     contentRating,
     completion,
-  });
+  })
 
-  const combinedWhere = filterWhere
-    ? and(categoryExists, filterWhere)
-    : categoryExists;
+  const combinedWhere = filterWhere ? and(categoryExists, filterWhere) : categoryExists
 
   try {
     const hotRows = await getRankedStories({
@@ -246,14 +260,14 @@ app.get("/:slug", withDatabase, async (c) => {
       extraWhere: combinedWhere,
       limit,
       offset,
-    });
+    })
 
     const sortedStories = await hydrateRankedStories(
       db,
       hotRows.map((r) => r.id),
       Object.fromEntries(hotRows.map((r) => [r.id, r.score])),
       userId,
-    );
+    )
 
     const [{ count: totalCount }] = await db
       .select({
@@ -266,11 +280,11 @@ app.get("/:slug", withDatabase, async (c) => {
         filterWhere
           ? and(eq(fandom.categoryId, categoryRow.id), filterWhere)
           : eq(fandom.categoryId, categoryRow.id),
-      );
+      )
 
-    const totalPages = Math.ceil(totalCount / limit);
-    const hasMore = page < totalPages;
-    const nextPage = hasMore ? page + 1 : null;
+    const totalPages = Math.ceil(totalCount / limit)
+    const hasMore = page < totalPages
+    const nextPage = hasMore ? page + 1 : null
 
     return c.json(
       {
@@ -283,11 +297,11 @@ app.get("/:slug", withDatabase, async (c) => {
         hasMore,
       },
       { status: 200 },
-    );
+    )
   } catch (err) {
-    console.error(err);
-    return c.json({ success: false }, { status: 500 });
+    console.error(err)
+    return c.json({ success: false }, { status: 500 })
   }
-});
+})
 
-export { app as feed };
+export { app as feed }

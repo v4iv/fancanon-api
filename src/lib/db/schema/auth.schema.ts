@@ -1,12 +1,5 @@
-import { relations, sql } from "drizzle-orm";
-import {
-  pgTable,
-  text,
-  timestamp,
-  boolean,
-  integer,
-  index,
-} from "drizzle-orm/pg-core";
+import { relations, sql } from 'drizzle-orm'
+import { pgTable, text, timestamp, boolean, integer, index } from 'drizzle-orm/pg-core'
 
 import {
   activity,
@@ -23,92 +16,92 @@ import {
   readLater,
   report,
   story,
-} from "@/lib/db/schema";
+} from '@/lib/db/schema'
 
 export const user = pgTable(
-  "user",
+  'user',
   {
-    id: text("id").primaryKey(),
-    name: text("name").notNull(),
-    email: text("email").notNull().unique(),
-    emailVerified: boolean("email_verified").default(false).notNull(),
-    image: text("image"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    email: text('email').notNull().unique(),
+    emailVerified: boolean('email_verified').default(false).notNull(),
+    image: text('image'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
       .defaultNow()
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
-    username: text("username").unique(),
-    displayUsername: text("display_username"),
-    explicitConsentAt: timestamp("explicit_consent_at"),
-    explicitConsentVersion: integer("explicit_consent_version"),
+    username: text('username').unique(),
+    displayUsername: text('display_username'),
+    explicitConsentAt: timestamp('explicit_consent_at'),
+    explicitConsentVersion: integer('explicit_consent_version'),
   },
   (table) => [
-    index("user_search_idx").using(
-      "gin",
+    index('user_search_idx').using(
+      'gin',
       sql`to_tsvector('english', coalesce(${table.username}, '') || ' ' || coalesce(${table.name}, ''))`,
     ),
   ],
-);
+)
 
 export const session = pgTable(
-  "session",
+  'session',
   {
-    id: text("id").primaryKey(),
-    expiresAt: timestamp("expires_at").notNull(),
-    token: text("token").notNull().unique(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
+    id: text('id').primaryKey(),
+    expiresAt: timestamp('expires_at').notNull(),
+    token: text('token').notNull().unique(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
-    ipAddress: text("ip_address"),
-    userAgent: text("user_agent"),
-    userId: text("user_id")
+    ipAddress: text('ip_address'),
+    userAgent: text('user_agent'),
+    userId: text('user_id')
       .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
+      .references(() => user.id, { onDelete: 'cascade' }),
   },
-  (table) => [index("session_userId_idx").on(table.userId)],
-);
+  (table) => [index('session_userId_idx').on(table.userId)],
+)
 
 export const account = pgTable(
-  "account",
+  'account',
   {
-    id: text("id").primaryKey(),
-    accountId: text("account_id").notNull(),
-    providerId: text("provider_id").notNull(),
-    userId: text("user_id")
+    id: text('id').primaryKey(),
+    accountId: text('account_id').notNull(),
+    providerId: text('provider_id').notNull(),
+    userId: text('user_id')
       .notNull()
-      .references(() => user.id, { onDelete: "cascade" }),
-    accessToken: text("access_token"),
-    refreshToken: text("refresh_token"),
-    idToken: text("id_token"),
-    accessTokenExpiresAt: timestamp("access_token_expires_at"),
-    refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
-    scope: text("scope"),
-    password: text("password"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
+      .references(() => user.id, { onDelete: 'cascade' }),
+    accessToken: text('access_token'),
+    refreshToken: text('refresh_token'),
+    idToken: text('id_token'),
+    accessTokenExpiresAt: timestamp('access_token_expires_at'),
+    refreshTokenExpiresAt: timestamp('refresh_token_expires_at'),
+    scope: text('scope'),
+    password: text('password'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
   },
-  (table) => [index("account_userId_idx").on(table.userId)],
-);
+  (table) => [index('account_userId_idx').on(table.userId)],
+)
 
 export const verification = pgTable(
-  "verification",
+  'verification',
   {
-    id: text("id").primaryKey(),
-    identifier: text("identifier").notNull(),
-    value: text("value").notNull(),
-    expiresAt: timestamp("expires_at").notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
+    id: text('id').primaryKey(),
+    identifier: text('identifier').notNull(),
+    value: text('value').notNull(),
+    expiresAt: timestamp('expires_at').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
       .defaultNow()
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
   },
-  (table) => [index("verification_identifier_idx").on(table.identifier)],
-);
+  (table) => [index('verification_identifier_idx').on(table.identifier)],
+)
 
 /* -------------------------------------------------------------------------- */
 /*                                  Relations                                 */
@@ -134,45 +127,45 @@ export const userRelations = relations(user, ({ many }) => ({
 
   // Follow
   followers: many(follow, {
-    relationName: "followers",
+    relationName: 'followers',
   }),
 
   following: many(follow, {
-    relationName: "following",
+    relationName: 'following',
   }),
 
   // Feed
   feedItems: many(feedItem),
   notifications: many(notification),
   activityActor: many(activity, {
-    relationName: "activity_actor",
+    relationName: 'activity_actor',
   }),
   activityActorTarget: many(activity, {
-    relationName: "activity_target",
+    relationName: 'activity_target',
   }),
 
   // Reports
   reports: many(report, {
-    relationName: "reports",
+    relationName: 'reports',
   }),
   reportsReceived: many(report, {
-    relationName: "reports_received",
+    relationName: 'reports_received',
   }),
   reportsResolved: many(report, {
-    relationName: "reports_resolved",
+    relationName: 'reports_resolved',
   }),
-}));
+}))
 
 export const sessionRelations = relations(session, ({ one }) => ({
   user: one(user, {
     fields: [session.userId],
     references: [user.id],
   }),
-}));
+}))
 
 export const accountRelations = relations(account, ({ one }) => ({
   user: one(user, {
     fields: [account.userId],
     references: [user.id],
   }),
-}));
+}))
