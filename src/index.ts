@@ -45,6 +45,6 @@ app.get("/", (c) => {
 });
 
 // routes
-app.route("/api/feed", feed);
+app.route("/v1/feed", feed);
 
 export default app;

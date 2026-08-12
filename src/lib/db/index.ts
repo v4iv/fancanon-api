@@ -3,6 +3,13 @@ import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import * as schema from "@/lib/db/schema";
 
+export function createDb(connectionString: string) {
+  const client = postgres(connectionString);
+  return drizzle(client, { schema });
+}
+
+export type Database = ReturnType<typeof createDb>;
+
 function withDatabase(c: Context, next: Next) {
   const databaseUrl = c.env.HYPERDRIVE.connectionString;
 
@@ -10,12 +17,8 @@ function withDatabase(c: Context, next: Next) {
     throw new Error("DATABASE_URL is not set");
   }
 
-  const client = postgres(databaseUrl);
-
-  const db = drizzle(client, { schema });
-
   if (!c.get("db")) {
-    c.set("db", db);
+    c.set("db", createDb(databaseUrl));
   }
 
   return next();
