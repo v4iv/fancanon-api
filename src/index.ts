@@ -3,7 +3,7 @@ import { cors } from "hono/cors";
 
 import { AppContext } from "@/lib/types";
 import { auth } from "@/lib/auth";
-import { feed } from "@/routes/feed";
+import { feed } from "@/routes/v1/feed";
 
 const app = new Hono<AppContext>();
 
