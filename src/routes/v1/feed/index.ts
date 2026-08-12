@@ -4,6 +4,13 @@ import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { AppContext } from "@/lib/types";
 import { withDatabase } from "@/lib/db";
 import {
+  DEFAULT_LIMIT,
+  DEFAULT_PAGE,
+  LIKES_WEIGHT,
+  READ_LATER_WEIGHT,
+  TRENDING_GRAVITY,
+} from "@/lib/constants";
+import {
   category,
   fandom,
   like,
@@ -11,13 +18,6 @@ import {
   story,
   storyFandom,
 } from "@/lib/db/schema";
-import {
-  DEFAULT_LIMIT,
-  DEFAULT_PAGE,
-  LIKES_WEIGHT,
-  READ_LATER_WEIGHT,
-  TRENDING_GRAVITY,
-} from "@/lib/constants";
 import {
   buildStoryFilterSql,
   getRankedStories,
@@ -76,6 +76,7 @@ app.get("/new", withDatabase, async (c) => {
     );
   } catch (err) {
     console.error(err);
+    return c.json({ success: false }, { status: 500 });
   }
 });
 
@@ -183,6 +184,7 @@ app.get("/hot", withDatabase, async (c) => {
     );
   } catch (err) {
     console.error(err);
+    return c.json({ success: false }, { status: 500 });
   }
 });
 
@@ -284,6 +286,7 @@ app.get("/:slug", withDatabase, async (c) => {
     );
   } catch (err) {
     console.error(err);
+    return c.json({ success: false }, { status: 500 });
   }
 });
 
