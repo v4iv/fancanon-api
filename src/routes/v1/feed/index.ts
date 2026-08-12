@@ -194,7 +194,7 @@ app.get("/:slug", withDatabase, async (c) => {
   const languages = c.req.queries("languages");
   const completion = c.req.query("completion");
   const contentRating = c.req.queries("contentRating");
-  const slug = c.req.param("slug") ?? "";
+  const slug = c.req.param("slug") as string;
 
   if (
     !Number.isInteger(page) ||

@@ -4,6 +4,7 @@ import { cors } from "hono/cors";
 import { AppContext } from "@/lib/types";
 import { auth } from "@/lib/auth";
 import { feed } from "@/routes/v1/feed";
+import { stories } from "@/routes/v1/stories";
 
 const app = new Hono<AppContext>();
 
@@ -46,5 +47,6 @@ app.get("/", (c) => {
 
 // routes
 app.route("/v1/feed", feed);
+app.route("/v1/stories", stories);
 
 export default app;
