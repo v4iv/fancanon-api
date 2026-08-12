@@ -21,6 +21,9 @@
       "localConnectionString": "postgres://root:mysecretpassword@localhost:5432/local"
     }
   ],
+  "assets": {
+    "directory": "public"
+  }
   // "kv_namespaces": [
   //   {
   //     "binding": "MY_KV_NAMESPACE",
