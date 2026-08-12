@@ -5,11 +5,12 @@
     "dev": "wrangler dev",
     "deploy": "wrangler deploy --minify",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
-    "db:generate": "prisma migrate dev",
-    "db:migrate": "prisma migrate deploy",
-    "db:push": "prisma db push",
-    "db:studio": "prisma studio",
-    "db:seed": "prisma db seed"
+    "db:start": "docker compose up -d",
+    "db:push": "drizzle-kit push",
+    "db:generate": "drizzle-kit generate --config=drizzle.config.ts",
+    "db:migrate": "DEBUG=* drizzle-kit migrate --config=drizzle.config.ts",
+    "db:studio": "drizzle-kit studio --config=drizzle.config.ts",
+    "auth:schema": "auth generate --config src/lib/auth/index.ts --output src/lib/db/schema/auth.schema.ts --yes"
   },
   "dependencies": {
     "@paralleldrive/cuid2": "^3.3.0",
