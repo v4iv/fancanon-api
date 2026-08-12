@@ -3,19 +3,15 @@ import { cors } from "hono/cors";
 
 import { AppContext } from "@/lib/types";
 import { auth } from "@/lib/auth";
-import { tags } from "@/routes/tags";
 import { feed } from "@/routes/feed";
-import { search } from "@/routes/search";
-import { stories } from "@/routes/stories";
-import { fandoms } from "@/routes/fandoms";
 
 const app = new Hono<AppContext>();
 
 app.use("*", async (c, next) => {
-  const trustedOrigins = c.env.TRUSTED_ORIGINS;
+  const allowedHosts = c.env.ALLOWED_HOSTS;
 
   const corsMiddlewareHandler = cors({
-    origin: trustedOrigins.split(","),
+    origin: allowedHosts.split(","),
     credentials: true,
   });
 
@@ -49,10 +45,6 @@ app.get("/", (c) => {
 });
 
 // routes
-app.route("/api/tags", tags);
 app.route("/api/feed", feed);
-app.route("/api/search", search);
-app.route("/api/stories", stories);
-app.route("/api/fandoms", fandoms);
 
 export default app;
