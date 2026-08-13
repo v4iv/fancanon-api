@@ -166,7 +166,7 @@ app.get(
 )
 
 app.delete(
-  '/:storyId/unlike',
+  '/:storyId/like',
   describeRoute({
     description:
       "Removes a story like for the authenticated user within an atomic transaction. Decrements the story's like count and purges associated activity and notification entries.",
@@ -235,7 +235,7 @@ app.delete(
 )
 
 app.get(
-  '/:storyId/add-to-read-later',
+  '/:storyId/read-later',
   describeRoute({
     description:
       "Saves a story to the authenticated user's read-later list within an atomic transaction and increments the story's read-later count.",
@@ -299,7 +299,7 @@ app.get(
 )
 
 app.delete(
-  '/:storyId/remove-from-read-later',
+  '/:storyId/read-later',
   describeRoute({
     description:
       "Removes a story from the authenticated user's read-later list within an atomic transaction and decrements the story's read-later count.",
