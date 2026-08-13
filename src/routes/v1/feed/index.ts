@@ -189,7 +189,6 @@ app.get(
 
 app.get(
   '/:slug',
-
   describeRoute({
     description:
       'Fetches a decay-ranked trending feed for stories within a specific category. Supports additional filtering by language, completion status, and content rating.',
@@ -202,8 +201,8 @@ app.get(
       },
     },
   }),
-  validator('query', feedQuerySchema),
   validator('param', feedParamSchema),
+  validator('query', feedQuerySchema),
   withDatabase,
   async (c) => {
     const { page, limit, completion, languages, ratings } = c.req.valid('query')
