@@ -5,23 +5,38 @@ export const cuid = (name = 'id') => text(name).$defaultFn(createId).primaryKey(
 
 // Helper function to turn wildcard origin strings into regular expressions
 export function createHostMatcher(allowedHostsEnv: string) {
-  const hosts = allowedHostsEnv.split(',').map((h) => h.trim())
+  // 1. Guard against empty/undefined string
+  if (!allowedHostsEnv || typeof allowedHostsEnv !== 'string') {
+    return () => false
+  }
+
+  // 2. Split and remove empty entries / accidental whitespace
+  const hosts = allowedHostsEnv
+    .split(',')
+    .map((h) => h.trim())
+    .filter((h) => h.length > 0) // Removes empty strings!
 
   const matchers = hosts.map((host) => {
-    // Escape standard regex characters except *
+    // 3. Escape regex special characters safely
     const escaped = host.replace(/[.+?^${}()|[\]\\]/g, '\\$&')
-    // Replace * with regex wildcard for subdomains
+    // Replace wildcard '*' with wildcard pattern '.*'
     const regexString = `^${escaped.replace(/\\\*/g, '.*')}$`
-    return new RegExp(regexString)
+
+    // 4. Wrap in try-catch in case an invalid string sneaks in
+    try {
+      return new RegExp(regexString)
+    } catch (e) {
+      console.error(`Invalid CORS host regex created for: "${host}"`, e)
+      return /^$/ // harmless fallback regex that matches nothing
+    }
   })
 
   return (origin: string): boolean => {
     try {
-      // Extract hostname from full origin URL (e.g., "https://sub.fancanon.com:8080" -> "sub.fancanon.com")
       const hostname = new URL(origin).hostname
       return matchers.some((matcher) => matcher.test(hostname))
     } catch {
-      return false // Return false if origin is not a valid URL
+      return false
     }
   }
 }
