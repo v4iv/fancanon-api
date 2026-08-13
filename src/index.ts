@@ -4,7 +4,7 @@ import { openAPIRouteHandler } from 'hono-openapi'
 
 import { AppContext } from '@/lib/types'
 import { auth } from '@/lib/auth'
-import { createHostMatcher } from '@/lib/utils'
+import { getHostMatcher } from '@/lib/utils'
 import { feed } from '@/routes/v1/feed'
 import { stories } from '@/routes/v1/stories'
 
@@ -12,20 +12,13 @@ const app = new Hono<AppContext>()
 
 // cors
 app.use('*', async (c, next) => {
-  const allowedHosts = c.env.ALLOWED_HOSTS || ''
-  const isAllowedHost = createHostMatcher(allowedHosts)
+  const isAllowedHost = getHostMatcher(c.env?.ALLOWED_HOSTS ?? '')
 
   const corsMiddlewareHandler = cors({
     origin: (origin) => {
-      // Allow non-browser calls (like cURL, Postman) which have no origin
       if (!origin) return null
-
-      if (origin.startsWith('http://localhost:')) {
-        return origin
-      }
-      if (isAllowedHost(origin)) {
-        return origin
-      }
+      if (origin.startsWith('http://localhost:')) return origin
+      if (isAllowedHost(origin)) return origin
       return null
     },
     credentials: true,
