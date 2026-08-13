@@ -74,4 +74,29 @@ export const StorySchema = v.object({
   updatedAt: v.string(),
 })
 
+export const ChapterSchema = v.object({
+  id: v.string(),
+  storyId: v.string(),
+  authorId: v.string(),
+  title: v.optional(v.string()),
+  chapterIndex: v.number(),
+  content: v.string(),
+  viewCount: v.number(),
+  author: v.object({
+    id: v.string(),
+    username: v.string(),
+    image: v.string(),
+    name: v.string(),
+  }),
+  bookmarks: v.array(
+    v.object({
+      userId: v.string(),
+      chapterId: v.string(),
+    }),
+  ),
+  createdAt: v.string(),
+  updatedAt: v.string(),
+})
+
 export type StoryType = v.InferOutput<typeof StorySchema>
+export type ChapterType = v.InferOutput<typeof ChapterSchema>

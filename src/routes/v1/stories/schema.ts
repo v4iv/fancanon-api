@@ -1,3 +1,4 @@
+import { ChapterSchema, StorySchema } from '@/lib/types.d'
 import * as v from 'valibot'
 
 export const storyParamSchema = v.object({
@@ -6,4 +7,26 @@ export const storyParamSchema = v.object({
 
 export const storyActionResponseSchema = v.object({
   success: v.boolean(),
+})
+
+export const storyResponseSchema = v.object({
+  success: v.boolean(),
+  story: StorySchema,
+})
+
+export const chaptersResponseSchema = v.object({
+  success: v.boolean(),
+  chapters: v.array(
+    v.pick(ChapterSchema, [
+      'id',
+      'title',
+      'authorId',
+      'storyId',
+      'chapterIndex',
+      'viewCount',
+      'bookmarks',
+      'createdAt',
+      'updatedAt',
+    ]),
+  ),
 })

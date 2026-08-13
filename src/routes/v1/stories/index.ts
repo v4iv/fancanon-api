@@ -1,13 +1,99 @@
 import { Hono } from 'hono'
-import { and, eq, sql } from 'drizzle-orm'
+import { and, asc, eq, sql } from 'drizzle-orm'
 import { describeRoute, resolver, validator } from 'hono-openapi'
 
-import { AppContext } from '@/lib/types'
+import { AppContext } from '@/lib/types.d'
 import { withDatabase } from '@/lib/db'
-import { activity, like, notification, readLater, story } from '@/lib/db/schema'
-import { storyActionResponseSchema, storyParamSchema } from './schema'
+import { storyWithForUser } from '@/lib/helpers/story-helper'
+import { activity, bookmark, chapter, like, notification, readLater, story } from '@/lib/db/schema'
+import {
+  chaptersResponseSchema,
+  storyActionResponseSchema,
+  storyParamSchema,
+  storyResponseSchema,
+} from './schema'
 
 const app = new Hono<AppContext>()
+
+app.get(
+  '/:storyId',
+  describeRoute({
+    description: 'Fetches the story',
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': { schema: resolver(storyResponseSchema) },
+        },
+      },
+    },
+  }),
+  validator('param', storyParamSchema),
+  withDatabase,
+  async (c) => {
+    const { storyId } = c.req.valid('param')
+    const user = c.get('user')
+    const userId = user?.id ?? ''
+    const db = c.get('db')
+
+    const storyRow = await db.query.story.findFirst({
+      where: eq(story.id, storyId),
+      with: storyWithForUser(userId),
+    })
+
+    if (!storyRow) {
+      return c.json({ success: false }, { status: 404 })
+    }
+
+    return c.json({ success: true, story: storyRow }, { status: 200 })
+  },
+)
+
+app.delete(
+  '/:storyId',
+  describeRoute({
+    description: 'Deletes the story',
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': { schema: resolver(storyActionResponseSchema) },
+        },
+      },
+    },
+  }),
+  validator('param', storyParamSchema),
+  withDatabase,
+  async (c) => {
+    const { storyId } = c.req.valid('param')
+    const user = c.get('user')
+    const userId = user?.id ?? ''
+    const db = c.get('db')
+
+    try {
+      const [deleted] = await db
+        .delete(story)
+        .where(and(eq(story.id, storyId), eq(story.authorId, userId)))
+        .returning({ id: story.id })
+
+      if (deleted) {
+        return c.json({ success: true }, { status: 200 })
+      }
+
+      // Delete matched nothing — figure out why, for an accurate error response.
+      const [existing] = await db.select({ id: story.id }).from(story).where(eq(story.id, storyId))
+
+      if (!existing) {
+        return c.json({ success: false }, { status: 404 })
+      }
+
+      return c.json({ success: false }, { status: 403 })
+    } catch (err) {
+      console.error(err)
+      return c.json({ success: false }, { status: 500 })
+    }
+  },
+)
 
 app.get(
   '/:storyId/like',
@@ -270,6 +356,58 @@ app.delete(
       return c.json({ success: true }, { status: 200 })
     } catch (err) {
       console.error(err)
+      return c.json({ success: false }, { status: 500 })
+    }
+  },
+)
+
+app.get(
+  '/:storyId/chapters',
+  describeRoute({
+    description: 'Fetches all the chapters of the story',
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': { schema: resolver(chaptersResponseSchema) },
+        },
+      },
+    },
+  }),
+  validator('param', storyParamSchema),
+  withDatabase,
+  async (c) => {
+    const { storyId } = c.req.valid('param')
+    const user = c.get('user')
+    const userId = user?.id ?? ''
+    const db = c.get('db')
+
+    try {
+      const chapters = await db.query.chapter.findMany({
+        where: eq(chapter.storyId, storyId),
+        orderBy: asc(chapter.chapterIndex),
+        columns: {
+          storyId: true,
+          authorId: true,
+          id: true,
+          chapterIndex: true,
+          title: true,
+          viewCount: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+        with: {
+          bookmarks: {
+            where: eq(bookmark.userId, userId),
+            columns: { userId: true, chapterId: true },
+          },
+        },
+      })
+
+      return c.json({ success: true, chapters }, { status: 200 })
+    } catch (err) {
+      console.error(err)
+
       return c.json({ success: false }, { status: 500 })
     }
   },
