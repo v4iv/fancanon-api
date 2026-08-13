@@ -6,6 +6,7 @@ import { AppContext } from '@/lib/types'
 import { auth } from '@/lib/auth'
 import { getHostMatcher } from '@/lib/utils'
 import { feed } from '@/routes/v1/feed'
+import { search } from '@/routes/v1/search'
 import { stories } from '@/routes/v1/stories'
 
 const app = new Hono<AppContext>()
@@ -76,6 +77,7 @@ app.get(
 
 // routes
 app.route('/v1/feed', feed)
+app.route('/v1/search', search)
 app.route('/v1/stories', stories)
 
 export default app

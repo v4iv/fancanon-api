@@ -37,8 +37,8 @@ export const feedQuerySchema = v.object({
     ),
   ),
 
-  // Content Rating: Optional array of ratings (e.g. ?contentRating=TEEN&contentRating=MATURE)
-  contentRating: v.optional(
+  // Content Rating: Optional array of ratings (e.g. ?ratings=TEEN&ratings=MATURE)
+  ratings: v.optional(
     v.pipe(
       v.union([v.string(), v.array(v.string())]),
       v.transform((val) => (Array.isArray(val) ? val : [val])),

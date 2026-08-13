@@ -206,7 +206,7 @@ app.get(
   validator('param', feedParamSchema),
   withDatabase,
   async (c) => {
-    const { page, limit, completion, languages, contentRating } = c.req.valid('query')
+    const { page, limit, completion, languages, ratings } = c.req.valid('query')
     const { slug } = c.req.valid('param')
 
     const db = c.get('db')
@@ -235,7 +235,7 @@ app.get(
 
     const filterWhere = buildStoryFilterSql({
       languages,
-      contentRating,
+      contentRating: ratings,
       completion,
     })
 
