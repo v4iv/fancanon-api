@@ -6,6 +6,8 @@ import { betterAuth, type BetterAuthOptions } from 'better-auth/minimal'
 
 import { RESTRICTED_USERNAMES } from '@/lib/constants'
 import * as schema from '@/lib/db/schema'
+import { createRedis } from '@/lib/redis'
+import { redisSecondaryStorage } from '@/lib/auth/adapters/redis-secondary-storage'
 
 const options = {
   experimental: { joins: true },
@@ -70,6 +72,8 @@ export const auth = (env: CloudflareBindings): ReturnType<typeof betterAuth<any>
 
   const client = postgres(databaseUrl)
 
+  const redis = createRedis(env)
+
   const db = drizzle(client, { schema })
   return betterAuth({
     appName: 'fancanon',
@@ -93,6 +97,11 @@ export const auth = (env: CloudflareBindings): ReturnType<typeof betterAuth<any>
         domain: env.COOKIE_DOMAIN,
       },
     },
+    secondaryStorage: redisSecondaryStorage(redis),
+    session: {
+      storeSessionInDatabase: true,
+    },
+
     socialProviders: {
       google: {
         prompt: 'select_account consent',
