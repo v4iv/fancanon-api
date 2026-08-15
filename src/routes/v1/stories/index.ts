@@ -68,7 +68,13 @@ app.delete(
   async (c) => {
     const { storyId } = c.req.valid('param')
     const user = c.get('user')
-    const userId = user?.id ?? ''
+
+    if (!user) {
+      return c.json({ success: false }, { status: 401 })
+    }
+
+    const userId = user.id
+
     const db = c.get('db')
 
     try {
@@ -116,11 +122,13 @@ app.get(
     const { storyId } = c.req.valid('param')
 
     const user = c.get('user')
+
     if (!user) {
       return c.json({ success: false }, { status: 401 })
     }
 
-    const userId = user?.id ?? ''
+    const userId = user.id
+
     const db = c.get('db')
 
     try {
@@ -186,11 +194,12 @@ app.delete(
     const { storyId } = c.req.valid('param')
 
     const user = c.get('user')
+
     if (!user) {
       return c.json({ success: false }, { status: 401 })
     }
 
-    const userId = user?.id ?? ''
+    const userId = user.id
     const db = c.get('db')
 
     try {
@@ -255,11 +264,12 @@ app.get(
     const { storyId } = c.req.valid('param')
 
     const user = c.get('user')
+
     if (!user) {
       return c.json({ success: false }, { status: 401 })
     }
 
-    const userId = user?.id ?? ''
+    const userId = user.id
     const db = c.get('db')
 
     try {
@@ -319,11 +329,12 @@ app.delete(
     const { storyId } = c.req.valid('param')
 
     const user = c.get('user')
+
     if (!user) {
       return c.json({ success: false }, { status: 401 })
     }
 
-    const userId = user?.id ?? ''
+    const userId = user.id
     const db = c.get('db')
 
     try {
