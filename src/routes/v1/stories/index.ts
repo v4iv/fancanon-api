@@ -8,6 +8,7 @@ import { storyWithForUser } from '@/lib/helpers/story-helper'
 import { activity, bookmark, chapter, like, notification, readLater, story } from '@/lib/db/schema'
 import {
   chaptersResponseSchema,
+  ratingResponseSchema,
   storyActionResponseSchema,
   storyParamSchema,
   storyResponseSchema,
@@ -410,6 +411,46 @@ app.get(
 
       return c.json({ success: false }, { status: 500 })
     }
+  },
+)
+
+app.get(
+  '/:storyId/content-rating',
+  describeRoute({
+    description: "Fetches the story's content rating and the author's id and username",
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': { schema: resolver(ratingResponseSchema) },
+        },
+      },
+    },
+  }),
+  validator('param', storyParamSchema),
+  withDatabase,
+  async (c) => {
+    const { storyId } = c.req.valid('param')
+    const db = c.get('db')
+
+    const storyRow = await db.query.story.findFirst({
+      where: eq(story.id, storyId),
+      columns: {
+        contentRating: true,
+      },
+      with: {
+        author: { columns: { id: true, username: true } },
+      },
+    })
+
+    if (!storyRow) {
+      return c.json({ success: false }, { status: 404 })
+    }
+
+    return c.json(
+      { success: true, contentRating: storyRow.contentRating, author: storyRow.author },
+      { status: 200 },
+    )
   },
 )
 
