@@ -8,6 +8,7 @@ import { getHostMatcher } from '@/lib/utils'
 import { feed } from '@/routes/v1/feed'
 import { search } from '@/routes/v1/search'
 import { stories } from '@/routes/v1/stories'
+import { chapters } from '@/routes/v1/chapters'
 import { analytics } from '@/routes/v1/analytics'
 
 const app = new Hono<AppContext>()
@@ -80,6 +81,7 @@ app.get(
 app.route('/v1/feed', feed)
 app.route('/v1/search', search)
 app.route('/v1/stories', stories)
+app.route('/v1/chapters', chapters)
 app.route('/v1/analytics', analytics)
 
 export default app
