@@ -1,7 +1,7 @@
 import * as v from 'valibot'
 
 import { Languages } from '@/lib/constants'
-import { contentRatingEnum, tagTypeEnum } from '@/lib/db/schema'
+import { activityVerbEnum, contentRatingEnum, tagTypeEnum } from '@/lib/db/schema'
 
 export const ContentRatingSchema = v.picklist(contentRatingEnum.enumValues)
 export const TagTypeSchema = v.picklist(tagTypeEnum.enumValues)
@@ -160,3 +160,9 @@ export const StatsSchema = v.object({
 })
 
 export type StatsType = v.InferOutput<typeof StatsSchema>
+
+// TODO: complete Notification Schema
+export const NotificationSchema = v.object({
+  id: v.string(),
+  verb: v.picklist(activityVerbEnum.enumValues),
+})

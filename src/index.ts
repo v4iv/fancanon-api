@@ -13,6 +13,7 @@ import { chapters } from '@/routes/v1/chapters'
 import { comments } from '@/routes/v1/comments'
 import { analytics } from '@/routes/v1/analytics'
 import { dashboard } from '@/routes/v1/dashboard'
+import { notifications } from '@/routes/v1/notifications'
 
 const app = new Hono<AppContext>()
 
@@ -91,5 +92,6 @@ app.route('/v1/chapters', chapters)
 app.route('/v1/comments', comments)
 app.route('/v1/analytics', analytics)
 app.route('/v1/dashboard', dashboard)
+app.route('/v1/notifications', notifications)
 
 export default app
