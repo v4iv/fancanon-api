@@ -1,5 +1,6 @@
 import * as v from 'valibot'
 
+import { activityVerbEnum } from '@/lib/db/schema'
 import { CATEGORIES, DEFAULT_LIMIT, DEFAULT_PAGE } from '@/lib/constants'
 import { CompletionSchema, ContentRatingSchema, LanguageSchema, StorySchema } from '@/lib/schemas'
 
@@ -54,6 +55,24 @@ export const feedParamSchema = v.object({
 export const feedResponseSchema = v.object({
   success: v.boolean(),
   stories: v.array(StorySchema),
+  currentPage: v.number(),
+  totalPages: v.number(),
+  nextPage: v.nullable(v.number()),
+  hasMore: v.boolean(),
+})
+
+export const userFeedResponseSchema = v.object({
+  success: v.boolean(),
+  feed: v.array(
+    v.object({
+      feedItemId: v.string(),
+      verb: v.picklist(activityVerbEnum.enumValues),
+      story: v.any(),
+      chapter: v.any(),
+      seenAt: v.string(),
+      createdAt: v.date(),
+    }),
+  ),
   currentPage: v.number(),
   totalPages: v.number(),
   nextPage: v.nullable(v.number()),

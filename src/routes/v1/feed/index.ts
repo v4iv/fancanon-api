@@ -5,16 +5,106 @@ import { describeRoute, resolver, validator } from 'hono-openapi'
 import { AppContext } from '@/lib/types'
 import { withDatabase } from '@/lib/db'
 import { LIKES_WEIGHT, READ_LATER_WEIGHT, TRENDING_GRAVITY } from '@/lib/constants'
-import { category, fandom, like, readLater, story, storyFandom } from '@/lib/db/schema'
+import { category, fandom, feedItem, like, readLater, story, storyFandom } from '@/lib/db/schema'
 import {
   buildStoryFilterSql,
   getRankedStories,
   hydrateRankedStories,
 } from '@/lib/helpers/feed-helper'
 import { storyWithForUser } from '@/lib/helpers/story-helper'
-import { feedParamSchema, feedQuerySchema, feedResponseSchema } from './schema'
+import {
+  feedParamSchema,
+  feedQuerySchema,
+  feedResponseSchema,
+  userFeedResponseSchema,
+} from './schema'
 
 const app = new Hono<AppContext>()
+
+app.get(
+  '/',
+  describeRoute({
+    description: "Fetches a paginated list of the user's feed",
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': { schema: resolver(userFeedResponseSchema) },
+        },
+      },
+    },
+  }),
+  validator('query', feedQuerySchema),
+  withDatabase,
+  async (c) => {
+    const { page, limit } = c.req.valid('query')
+
+    const user = c.get('user')
+
+    if (!user) {
+      return c.json({ success: false }, { status: 401 })
+    }
+
+    const userId = user.id
+    const db = c.get('db')
+
+    const offset = (page - 1) * limit
+
+    try {
+      const items = await db.query.feedItem.findMany({
+        where: eq(feedItem.ownerId, userId),
+        orderBy: (fi, { desc }) => desc(fi.createdAt),
+        limit,
+        offset,
+        with: {
+          activity: {
+            columns: { id: true, verb: true, createdAt: true },
+            with: {
+              // activity.storyId is populated for both verbs (denormalized, same
+              // reasoning as history.storyId — avoids a join through chapter for
+              // CHAPTER_PUBLISHED). chapter is only present for CHAPTER_PUBLISHED.
+              story: { with: storyWithForUser(userId) },
+              chapter: { columns: { id: true, title: true, chapterIndex: true, createdAt: true } },
+            },
+          },
+        },
+      })
+
+      const feed = items.map((item) => ({
+        feedItemId: item.id,
+        verb: item.activity.verb,
+        story: item.activity.story,
+        chapter: item.activity.chapter,
+        seenAt: item.seenAt,
+        createdAt: item.createdAt,
+      }))
+
+      const [{ count: totalCount }] = await db
+        .select({ count: sql<number>`count(*)`.mapWith(Number) })
+        .from(feedItem)
+        .where(eq(feedItem.ownerId, userId))
+
+      const totalPages = Math.max(1, Math.ceil(totalCount / limit))
+      const hasMore = page < totalPages
+      const nextPage = hasMore ? page + 1 : null
+
+      return c.json(
+        {
+          success: true,
+          feed,
+          currentPage: page,
+          next: nextPage,
+          totalPages,
+          hasMore,
+        },
+        { status: 200 },
+      )
+    } catch (err) {
+      console.error(err)
+      return c.json({ success: false }, { status: 500 })
+    }
+  },
+)
 
 app.get(
   '/new',

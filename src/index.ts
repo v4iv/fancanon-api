@@ -3,6 +3,7 @@ import { cors } from 'hono/cors'
 import { openAPIRouteHandler } from 'hono-openapi'
 
 import { AppContext } from '@/lib/types'
+import { uwu } from './lib/assets/uwu'
 import { auth } from '@/lib/auth'
 import { getHostMatcher } from '@/lib/utils'
 import { feed } from '@/routes/v1/feed'
@@ -57,7 +58,10 @@ app.on(['GET', 'POST'], '/api/auth/*', (c) => {
 
 // home
 app.get('/', (c) => {
-  return c.text('🍀')
+  return c.body(uwu, 200, {
+    'Content-Type': 'image/svg+xml',
+    'Cache-Control': 'public, max-age=3600',
+  })
 })
 
 // OpenAPI spec to be consumed by Scalar/Swagger
