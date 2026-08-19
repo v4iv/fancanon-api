@@ -40,6 +40,19 @@ const options = {
         defaultValue: null,
       },
     },
+    changeEmail: {
+      enabled: true,
+    },
+    deleteUser: {
+      enabled: true,
+      sendDeleteAccountVerification: async ({
+        user, // The user object
+        url, // The auto-generated URL for deletion
+        token, // The verification token  (can be used to generate custom URL)
+      }) => {
+        console.log(user, url, token)
+      },
+    },
   },
   plugins: [
     username({
@@ -101,7 +114,9 @@ export const auth = (env: CloudflareBindings): ReturnType<typeof betterAuth<any>
     session: {
       storeSessionInDatabase: true,
     },
-
+    rateLimit: {
+      storage: 'secondary-storage',
+    },
     socialProviders: {
       google: {
         prompt: 'select_account consent',

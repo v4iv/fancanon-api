@@ -2,8 +2,9 @@ import { Hono } from 'hono'
 import { eq, and, sql, isNull, asc } from 'drizzle-orm'
 import { describeRoute, resolver, validator } from 'hono-openapi'
 
-import { AppContext, CommentType } from '@/lib/types.d'
+import { AppContext } from '@/lib/types.d'
 import { withDatabase } from '@/lib/db'
+import { CommentType } from '@/lib/schemas'
 import { bookmark, chapter, comment, commentLike, story } from '@/lib/db/schema'
 import {
   requestParamSchema,

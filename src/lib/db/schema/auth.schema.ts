@@ -41,6 +41,8 @@ export const user = pgTable(
       'gin',
       sql`to_tsvector('english', coalesce(${table.username}, '') || ' ' || coalesce(${table.name}, ''))`,
     ),
+    index('user_username_trgm_idx').using('gin', sql`coalesce(${table.username}, '') gin_trgm_ops`),
+    index('user_name_trgm_idx').using('gin', sql`coalesce(${table.name}, '') gin_trgm_ops`),
   ],
 )
 

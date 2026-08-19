@@ -1,5 +1,6 @@
-import { ChapterSchema, ContentRatingSchema, StorySchema } from '@/lib/types.d'
 import * as v from 'valibot'
+
+import { ChapterSchema, ContentRatingSchema, StorySchema } from '@/lib/schemas'
 
 export const storyParamSchema = v.object({
   storyId: v.string('Unique identifier of the target story.'),

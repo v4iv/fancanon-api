@@ -1,7 +1,7 @@
 import * as v from 'valibot'
 
 import { CATEGORIES, DEFAULT_LIMIT, DEFAULT_PAGE } from '@/lib/constants'
-import { CompletionSchema, ContentRatingSchema, LanguageSchema, StorySchema } from '@/lib/types.d'
+import { CompletionSchema, ContentRatingSchema, LanguageSchema, StorySchema } from '@/lib/schemas'
 
 export const feedQuerySchema = v.object({
   page: v.fallback(

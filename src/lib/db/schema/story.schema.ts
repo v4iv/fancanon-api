@@ -15,6 +15,7 @@ import {
 } from 'drizzle-orm/pg-core'
 
 import { cuid } from '@/lib/utils'
+import { ChapterEmbedType } from '@/lib/schemas'
 import { activity, bookmark, comment, like, readLater, report, user } from '@/lib/db/schema'
 
 export const contentRatingEnum = pgEnum('content_rating', ['GENERAL', 'TEEN', 'MATURE', 'EXPLICIT'])
@@ -101,6 +102,11 @@ export const story = pgTable(
       'gin',
       sql`to_tsvector('english', ${table.title} || ' ' || coalesce(${table.description}, ''))`,
     ),
+    index('story_title_trgm_idx').using('gin', sql`${table.title} gin_trgm_ops`),
+    index('story_description_trgm_idx').using(
+      'gin',
+      sql`coalesce(${table.description}, '') gin_trgm_ops`,
+    ),
   ],
 )
 
@@ -121,6 +127,7 @@ export const chapter = pgTable(
     chapterIndex: integer('chapter_index'),
     title: text('title').notNull(),
     content: text('content').notNull(),
+    embed: jsonb('embed').$type<ChapterEmbedType | null>(),
 
     // stats
     viewCount: integer('view_count').default(0).notNull(),
@@ -138,19 +145,23 @@ export const chapter = pgTable(
   ],
 )
 
-export const tag = pgTable('tag', {
-  id: cuid(),
-  name: text('name').notNull().unique(),
-  slug: text('slug').notNull().unique(),
-  type: tagTypeEnum('type').default('FREEFORM').notNull(),
-  usageCount: integer('usage_count').default(0).notNull(),
-  synonymOfId: text('synonym_of_id').references((): AnyPgColumn => tag.id),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at')
-    .defaultNow()
-    .$onUpdate(() => /* @__PURE__ */ new Date())
-    .notNull(),
-})
+export const tag = pgTable(
+  'tag',
+  {
+    id: cuid(),
+    name: text('name').notNull().unique(),
+    slug: text('slug').notNull().unique(),
+    type: tagTypeEnum('type').default('FREEFORM').notNull(),
+    usageCount: integer('usage_count').default(0).notNull(),
+    synonymOfId: text('synonym_of_id').references((): AnyPgColumn => tag.id),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [index('tag_name_trgm_idx').using('gin', sql`${table.name} gin_trgm_ops`)],
+)
 
 export const storyTag = pgTable(
   'story_tag',
