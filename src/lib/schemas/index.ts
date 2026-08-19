@@ -149,3 +149,14 @@ export const CommentSchema: v.GenericSchema<CommentType> = v.object({
   createdAt: v.date(),
   updatedAt: v.date(),
 })
+
+export const StatsSchema = v.object({
+  totalStories: v.number(),
+  totalChapters: v.number(),
+  totalLikes: v.number(),
+  totalViews: v.number(),
+  totalComments: v.number(),
+  totalReadLaters: v.number(),
+})
+
+export type StatsType = v.InferOutput<typeof StatsSchema>
