@@ -4,7 +4,7 @@ import { DEFAULT_LIMIT, DEFAULT_PAGE } from '@/lib/constants'
 import { CommentSchema } from '@/lib/schemas'
 
 export const requestParamSchema = v.object({
-  chapterId: v.string('Unique identifier of the target story.'),
+  chapterId: v.string('Unique identifier of the target chapter.'),
 })
 
 export const requestQuerySchema = v.object({
