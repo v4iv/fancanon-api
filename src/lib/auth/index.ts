@@ -10,7 +10,6 @@ import { createRedis } from '@/lib/redis'
 import { redisSecondaryStorage } from '@/lib/auth/adapters/redis-secondary-storage'
 
 const options = {
-  experimental: { joins: true },
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
@@ -108,6 +107,9 @@ export const auth = (env: CloudflareBindings): ReturnType<typeof betterAuth<any>
         secure: true,
         httpOnly: true,
         domain: env.COOKIE_DOMAIN,
+      },
+      database: {
+        joins: true,
       },
     },
     secondaryStorage: redisSecondaryStorage(redis),
