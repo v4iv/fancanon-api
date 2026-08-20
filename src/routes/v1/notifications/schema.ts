@@ -37,6 +37,6 @@ export const responseSchema = v.object({
   notifications: v.array(v.any()),
   currentPage: v.number(),
   totalPages: v.number(),
-  nextPage: v.nullable(v.number()),
+  next: v.nullable(v.number()),
   hasMore: v.boolean(),
 })

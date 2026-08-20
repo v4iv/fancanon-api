@@ -9,6 +9,7 @@ import { getHostMatcher } from '@/lib/utils'
 import { feed } from '@/routes/v1/feed'
 import { search } from '@/routes/v1/search'
 import { stories } from '@/routes/v1/stories'
+import { history } from '@/routes/v1/history'
 import { chapters } from '@/routes/v1/chapters'
 import { comments } from '@/routes/v1/comments'
 import { analytics } from '@/routes/v1/analytics'
@@ -62,9 +63,19 @@ app.on(['GET', 'POST'], '/api/auth/*', (c) => {
 app.get('/', (c) => {
   return c.body(uwu, 200, {
     'Content-Type': 'image/svg+xml',
-    'Cache-Control': 'public, max-age=3600',
   })
 })
+
+// routes
+app.route('/v1/feed', feed)
+app.route('/v1/search', search)
+app.route('/v1/stories', stories)
+app.route('/v1/history', history)
+app.route('/v1/chapters', chapters)
+app.route('/v1/comments', comments)
+app.route('/v1/analytics', analytics)
+app.route('/v1/dashboard', dashboard)
+app.route('/v1/notifications', notifications)
 
 // OpenAPI spec to be consumed by Scalar/Swagger
 app.get(
@@ -83,15 +94,5 @@ app.get(
     },
   }),
 )
-
-// routes
-app.route('/v1/feed', feed)
-app.route('/v1/search', search)
-app.route('/v1/stories', stories)
-app.route('/v1/chapters', chapters)
-app.route('/v1/comments', comments)
-app.route('/v1/analytics', analytics)
-app.route('/v1/dashboard', dashboard)
-app.route('/v1/notifications', notifications)
 
 export default app

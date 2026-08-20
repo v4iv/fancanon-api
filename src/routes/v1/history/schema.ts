@@ -1,10 +1,10 @@
 import * as v from 'valibot'
 
 import { DEFAULT_LIMIT, DEFAULT_PAGE } from '@/lib/constants'
-import { CommentSchema } from '@/lib/schemas'
+import { ChapterSchema, StorySchema } from '@/lib/schemas'
 
 export const requestParamSchema = v.object({
-  chapterId: v.string('Unique identifier of the target chapter.'),
+  chapterId: v.string(),
 })
 
 export const requestQuerySchema = v.object({
@@ -29,15 +29,20 @@ export const requestQuerySchema = v.object({
   ),
 })
 
-export const actionResponseSchema = v.object({
+export const responseSchema = v.object({
   success: v.boolean(),
-})
-
-export const commentsResponseSchema = v.object({
-  success: v.boolean(),
-  comments: v.array(CommentSchema),
-  totalCount: v.number(),
+  history: v.array(
+    v.object({
+      userId: v.string(),
+      chapterId: v.string(),
+      storyId: v.string(),
+      chapter: v.partial(ChapterSchema),
+      story: v.partial(StorySchema),
+      lastViewedAt: v.date(),
+    }),
+  ),
+  currentPage: v.number(),
   totalPages: v.number(),
-  hasMore: v.boolean(),
   next: v.nullable(v.number()),
+  hasMore: v.boolean(),
 })

@@ -118,6 +118,6 @@ export const searchResponseSchema = v.object({
   totalCount: v.number(),
   currentPage: v.number(),
   totalPages: v.number(),
-  nextPage: v.nullable(v.number()),
+  next: v.nullable(v.number()),
   hasMore: v.boolean(),
 })

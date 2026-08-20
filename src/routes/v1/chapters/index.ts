@@ -226,7 +226,7 @@ app.get(
           comments: [],
           totalCount,
           totalPages: Math.max(1, Math.ceil(totalCount / limit)),
-          nextPage: null,
+          next: null,
           hasMore: false,
         })
       }
@@ -296,7 +296,7 @@ app.get(
         totalCount,
         totalPages,
         hasMore,
-        nextPage: hasMore ? page + 1 : null,
+        next: hasMore ? page + 1 : null,
       })
     } catch (err) {
       console.error(err)

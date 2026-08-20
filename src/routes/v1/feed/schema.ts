@@ -57,7 +57,7 @@ export const feedResponseSchema = v.object({
   stories: v.array(StorySchema),
   currentPage: v.number(),
   totalPages: v.number(),
-  nextPage: v.nullable(v.number()),
+  next: v.nullable(v.number()),
   hasMore: v.boolean(),
 })
 
@@ -75,6 +75,6 @@ export const userFeedResponseSchema = v.object({
   ),
   currentPage: v.number(),
   totalPages: v.number(),
-  nextPage: v.nullable(v.number()),
+  next: v.nullable(v.number()),
   hasMore: v.boolean(),
 })

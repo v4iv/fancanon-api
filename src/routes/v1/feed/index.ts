@@ -368,7 +368,7 @@ app.get(
           stories: sortedStories,
           totalCount,
           currentPage: page,
-          nextPage,
+          next: nextPage,
           totalPages,
           hasMore,
         },
