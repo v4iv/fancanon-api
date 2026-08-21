@@ -9,6 +9,7 @@ import { getHostMatcher } from '@/lib/utils'
 import { feed } from '@/routes/v1/feed'
 import { search } from '@/routes/v1/search'
 import { stories } from '@/routes/v1/stories'
+import { fandoms } from '@/routes/v1/fandoms'
 import { history } from '@/routes/v1/history'
 import { chapters } from '@/routes/v1/chapters'
 import { comments } from '@/routes/v1/comments'
@@ -70,6 +71,7 @@ app.get('/', (c) => {
 app.route('/v1/feed', feed)
 app.route('/v1/search', search)
 app.route('/v1/stories', stories)
+app.route('/v1/fandoms', fandoms)
 app.route('/v1/history', history)
 app.route('/v1/chapters', chapters)
 app.route('/v1/comments', comments)

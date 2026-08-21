@@ -1,5 +1,6 @@
-import { DEFAULT_LIMIT, DEFAULT_PAGE } from '@/lib/constants'
 import * as v from 'valibot'
+
+import { DEFAULT_LIMIT, DEFAULT_PAGE } from '@/lib/constants'
 
 export const indicatorResponseSchema = v.object({
   success: v.boolean(),
