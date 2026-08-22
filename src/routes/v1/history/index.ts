@@ -3,7 +3,7 @@ import * as v from 'valibot'
 import { and, desc, eq, sql } from 'drizzle-orm'
 import { describeRoute, resolver, validator } from 'hono-openapi'
 
-import { AppContext } from '@/lib/types.d'
+import { AppContext } from '@/types'
 import { withDatabase } from '@/lib/db'
 import { history } from '@/lib/db/schema'
 import { requestParamSchema, requestQuerySchema, responseSchema } from './schema'

@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { openAPIRouteHandler } from 'hono-openapi'
 
-import { AppContext } from '@/lib/types'
+import { AppContext } from '@/types'
 import { getHostMatcher } from '@/lib/utils'
 import { uwu } from './lib/assets/uwu'
 import { auth } from '@/lib/auth'

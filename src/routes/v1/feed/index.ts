@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { and, desc, eq, inArray, sql } from 'drizzle-orm'
 import { describeRoute, resolver, validator } from 'hono-openapi'
 
-import { AppContext } from '@/lib/types'
+import { AppContext } from '@/types'
 import { withDatabase } from '@/lib/db'
 import { LIKES_WEIGHT, READ_LATER_WEIGHT, TRENDING_GRAVITY } from '@/lib/constants'
 import { category, fandom, feedItem, like, readLater, story, storyFandom } from '@/lib/db/schema'

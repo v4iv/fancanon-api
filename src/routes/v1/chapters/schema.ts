@@ -1,7 +1,7 @@
 import * as v from 'valibot'
 
 import { DEFAULT_LIMIT, DEFAULT_PAGE } from '@/lib/constants'
-import { CommentSchema } from '@/lib/schemas'
+import { CommentSchema } from '@/lib/types'
 
 export const requestParamSchema = v.object({
   chapterId: v.string('Unique identifier of the target chapter.'),

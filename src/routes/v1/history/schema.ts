@@ -1,7 +1,7 @@
 import * as v from 'valibot'
 
 import { DEFAULT_LIMIT, DEFAULT_PAGE } from '@/lib/constants'
-import { ChapterSchema, StorySchema } from '@/lib/schemas'
+import { ChapterSchema, StorySchema } from '@/lib/types'
 
 export const requestParamSchema = v.object({
   chapterId: v.string(),

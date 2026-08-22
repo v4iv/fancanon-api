@@ -1,7 +1,7 @@
 import { eq, sql } from 'drizzle-orm'
 
 import type { Database } from '@/lib/db'
-import type { StatsType } from '@/lib/schemas'
+import type { StatsType } from '@/lib/types'
 import { story } from '@/lib/db/schema'
 
 export async function getAuthorStats(db: Database, authorId: string): Promise<StatsType> {

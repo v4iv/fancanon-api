@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { desc, eq } from 'drizzle-orm'
 import { describeRoute, resolver } from 'hono-openapi'
 
-import { AppContext } from '@/lib/types.d'
+import { AppContext } from '@/types'
 import { withDatabase } from '@/lib/db'
 import { statsResponseSchema, storiesResponseSchema } from './schema'
 import { getAuthorStats } from '@/lib/helpers/stats-helper'

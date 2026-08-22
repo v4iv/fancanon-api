@@ -1,6 +1,6 @@
 import * as v from 'valibot'
 
-import { StatsSchema, StorySchema } from '@/lib/schemas'
+import { StatsSchema, StorySchema } from '@/lib/types'
 
 export const statsResponseSchema = v.object({
   success: v.boolean(),

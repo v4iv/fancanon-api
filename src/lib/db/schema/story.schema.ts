@@ -15,7 +15,7 @@ import {
 } from 'drizzle-orm/pg-core'
 
 import { cuid } from '@/lib/utils'
-import { ChapterEmbedType } from '@/lib/schemas'
+import { ChapterEmbedType } from '@/lib/types'
 import { activity, bookmark, comment, like, readLater, report, user } from '@/lib/db/schema'
 
 export const contentRatingEnum = pgEnum('content_rating', ['GENERAL', 'TEEN', 'MATURE', 'EXPLICIT'])

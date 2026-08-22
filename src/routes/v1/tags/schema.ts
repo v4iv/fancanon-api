@@ -7,7 +7,7 @@ import {
   LanguageSchema,
   StorySchema,
   TagTypeSchema,
-} from '@/lib/schemas'
+} from '@/lib/types'
 
 export const requestParamSchema = v.object({
   slug: v.string(),

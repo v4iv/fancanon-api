@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { and, asc, desc, eq, ilike, inArray, sql } from 'drizzle-orm'
 import { describeRoute, resolver, validator } from 'hono-openapi'
 
-import { AppContext } from '@/lib/types.d'
+import { AppContext } from '@/types'
 import { withDatabase } from '@/lib/db'
 import { story, tag, tagTypeEnum } from '@/lib/db/schema'
 import {
@@ -147,7 +147,7 @@ app.get(
           stories: sortedStories,
           totalCount,
           currentPage: page,
-          nextPage,
+          next: nextPage,
           totalPages,
           hasMore,
         },

@@ -2,7 +2,7 @@ import * as v from 'valibot'
 
 import { activityVerbEnum } from '@/lib/db/schema'
 import { CATEGORIES, DEFAULT_LIMIT, DEFAULT_PAGE } from '@/lib/constants'
-import { CompletionSchema, ContentRatingSchema, LanguageSchema, StorySchema } from '@/lib/schemas'
+import { CompletionSchema, ContentRatingSchema, LanguageSchema, StorySchema } from '@/lib/types'
 
 export const feedQuerySchema = v.object({
   page: v.fallback(

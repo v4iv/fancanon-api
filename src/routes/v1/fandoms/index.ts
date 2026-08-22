@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { and, asc, desc, eq, ilike, ne, or, sql } from 'drizzle-orm'
 import { describeRoute, resolver, validator } from 'hono-openapi'
 
-import { AppContext } from '@/lib/types.d'
+import { AppContext } from '@/types'
 import { withDatabase } from '@/lib/db'
 import { fandom, story } from '@/lib/db/schema'
 import {
