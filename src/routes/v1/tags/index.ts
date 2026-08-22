@@ -1,10 +1,10 @@
 import { Hono } from 'hono'
-import { and, asc, desc, eq, ilike, ne, or, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, ilike, inArray, sql } from 'drizzle-orm'
 import { describeRoute, resolver, validator } from 'hono-openapi'
 
 import { AppContext } from '@/lib/types.d'
 import { withDatabase } from '@/lib/db'
-import { fandom, story } from '@/lib/db/schema'
+import { story, tag, tagTypeEnum } from '@/lib/db/schema'
 import {
   requestParamSchema,
   requestQuerySchema,
@@ -24,7 +24,7 @@ const app = new Hono<AppContext>()
 app.get(
   '/search',
   describeRoute({
-    description: 'Search fandoms API.',
+    description: 'Search tags API.',
     responses: {
       200: {
         description: 'Successful response',
@@ -37,31 +37,29 @@ app.get(
   validator('query', searchRequestQuerySchema),
   withDatabase,
   async (c) => {
-    const { q: query, limit } = c.req.valid('query')
+    const { q: query, type, limit } = c.req.valid('query')
 
     const db = c.get('db')
+
+    const types: (typeof tagTypeEnum.enumValues)[number][] =
+      type === 'FREEFORM'
+        ? ['FREEFORM', 'FANDOM_FREEFORM']
+        : [type as (typeof tagTypeEnum.enumValues)[number]]
 
     try {
       const pattern = `%${query}%`
 
-      const fandoms = await db
-        .select({ id: fandom.id, slug: fandom.slug, name: fandom.name })
-        .from(fandom)
-        .where(
-          and(
-            ne(fandom.name, 'Original Content'),
-            or(
-              ilike(fandom.name, pattern),
-              ilike(fandom.slug, pattern),
-              ilike(fandom.description, pattern),
-            ),
-          ),
-        )
+      const tags = await db
+        .select({ name: tag.name, usageCount: tag.usageCount })
+        .from(tag)
+        .where(and(inArray(tag.type, types), ilike(tag.name, pattern)))
+        .orderBy(desc(tag.usageCount), asc(tag.name))
         .limit(limit)
 
-      const results = fandoms.map((f) => ({ label: f.name, value: f.id }))
-
-      return c.json({ results, success: true }, { status: 200 })
+      return c.json(
+        tags.map((t) => t.name),
+        { status: 200 },
+      )
     } catch (err) {
       console.error(err)
       return c.json({ success: false }, { status: 500 })
@@ -72,7 +70,7 @@ app.get(
 app.get(
   '/:slug',
   describeRoute({
-    description: 'Fetch stories from fandom slug path param.',
+    description: 'Fetch stories from tag slug path param.',
     responses: {
       200: {
         description: 'Successful response',
@@ -95,28 +93,29 @@ app.get(
 
     const offset = (page - 1) * limit
 
-    const fandomRow = await db.query.fandom.findFirst({
-      where: eq(fandom.slug, slug),
+    const tagRow = await db.query.tag.findFirst({
+      where: eq(tag.slug, slug),
       columns: { id: true },
     })
 
-    if (!fandomRow) {
+    if (!tagRow) {
       return c.json({ success: false }, { status: 404 })
     }
 
-    const fandomExists = sql`EXISTS (
-		SELECT 1 FROM story_fandom sf
-		WHERE sf.story_id = ${story.id} AND sf.fandom_id = ${fandomRow.id}
+    const tagExists = sql`EXISTS (
+		SELECT 1 FROM story_tag st
+		WHERE st.story_id = ${story.id} AND st.tag_id = ${tagRow.id}
     )`
 
     const filterWhere = buildStoryFilterSql({ languages, contentRating: ratings, completion })
-    const combinedWhere = filterWhere ? and(fandomExists, filterWhere) : fandomExists
+    const combinedWhere = filterWhere ? and(tagExists, filterWhere) : tagExists
 
     try {
       let sortedStories
 
       if (sort === 'hot') {
         const hotRows = await getRankedStories({ db, extraWhere: combinedWhere, limit, offset })
+
         sortedStories = await hydrateRankedStories(
           db,
           hotRows.map((r) => r.id),
@@ -148,7 +147,7 @@ app.get(
           stories: sortedStories,
           totalCount,
           currentPage: page,
-          next: nextPage,
+          nextPage,
           totalPages,
           hasMore,
         },
@@ -161,4 +160,4 @@ app.get(
   },
 )
 
-export { app as fandoms }
+export { app as tags }

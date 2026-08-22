@@ -3,9 +3,10 @@ import { cors } from 'hono/cors'
 import { openAPIRouteHandler } from 'hono-openapi'
 
 import { AppContext } from '@/lib/types'
+import { getHostMatcher } from '@/lib/utils'
 import { uwu } from './lib/assets/uwu'
 import { auth } from '@/lib/auth'
-import { getHostMatcher } from '@/lib/utils'
+import { tags } from '@/routes/v1/tags'
 import { feed } from '@/routes/v1/feed'
 import { search } from '@/routes/v1/search'
 import { stories } from '@/routes/v1/stories'
@@ -68,6 +69,7 @@ app.get('/', (c) => {
 })
 
 // routes
+app.route('/v1/tags', tags)
 app.route('/v1/feed', feed)
 app.route('/v1/search', search)
 app.route('/v1/stories', stories)
