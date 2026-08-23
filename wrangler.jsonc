@@ -3,16 +3,14 @@
   "name": "fancanon-api",
   "main": "src/index.ts",
   "compatibility_date": "2026-07-16",
-  "compatibility_flags": [
-    "nodejs_compat",
-    "nodejs_als",
-    "nodejs_compat_populate_process_env"
-  ],
+  "compatibility_flags": ["nodejs_compat", "nodejs_als", "nodejs_compat_populate_process_env"],
   "workers_dev": true,
   "preview_urls": true,
-  "observability": {
-    "enabled": true,
-    "head_sampling_rate": 1,
+  "placement": {
+    "mode": "smart",
+  },
+  "assets": {
+    "directory": "public",
   },
   "hyperdrive": [
     {
@@ -21,8 +19,9 @@
       "localConnectionString": "postgres://root:mysecretpassword@localhost:5432/local",
     },
   ],
-  "assets": {
-    "directory": "public",
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
   },
   // "kv_namespaces": [
   //   {
