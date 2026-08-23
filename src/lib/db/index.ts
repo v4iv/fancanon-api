@@ -6,6 +6,7 @@ import * as schema from '@/lib/db/schema'
 
 export function createDb(connectionString: string) {
   const client = postgres(connectionString)
+
   return drizzle(client, { schema })
 }
 
