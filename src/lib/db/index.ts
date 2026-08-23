@@ -5,7 +5,10 @@ import { drizzle } from 'drizzle-orm/postgres-js'
 import * as schema from '@/lib/db/schema'
 
 export function createDb(connectionString: string) {
-  const client = postgres(connectionString)
+  const client = postgres(connectionString, {
+    prepare: false, // Prevents prepare query caching issues across proxy layers
+    max: 1,
+  })
 
   return drizzle(client, { schema })
 }
