@@ -1,4 +1,5 @@
 import type { SecondaryStorage } from 'better-auth'
+import { captureException } from '@sentry/hono/cloudflare'
 
 import type { RedisType } from '@/lib/redis'
 
@@ -26,7 +27,7 @@ export function redisSecondaryStorage(redis: RedisType): SecondaryStorage {
         // Convert to string for any other type
         return String(value)
       } catch (error) {
-        console.error('Redis get error:', error)
+        captureException(error)
         return null
       }
     },
@@ -44,7 +45,7 @@ export function redisSecondaryStorage(redis: RedisType): SecondaryStorage {
           await redis.set(key, stringValue)
         }
       } catch (error) {
-        console.error('Redis set error:', error)
+        captureException(error)
         throw error
       }
     },
@@ -53,7 +54,7 @@ export function redisSecondaryStorage(redis: RedisType): SecondaryStorage {
       try {
         await redis.del(key)
       } catch (error) {
-        console.error('Redis delete error:', error)
+        captureException(error)
         throw error
       }
     },

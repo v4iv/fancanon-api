@@ -3,7 +3,7 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy --minify",
+    "deploy": "wrangler deploy --minify --outdir dist --upload-source-maps --var SENTRY_RELEASE:$(sentry-cli releases propose-version)",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -14,11 +14,15 @@
     "db:generate": "drizzle-kit generate --config=drizzle.config.ts",
     "db:migrate": "DEBUG=* drizzle-kit migrate --config=drizzle.config.ts",
     "db:studio": "drizzle-kit studio --config=drizzle.config.ts",
-    "auth:schema": "auth generate --config src/lib/auth/index.ts --output src/lib/db/schema/auth.schema.ts --yes"
+    "auth:schema": "auth generate --config src/lib/auth/index.ts --output src/lib/db/schema/auth.schema.ts --yes",
+    "sentry:sourcemaps": "_SENTRY_RELEASE=$(sentry-cli releases propose-version) && sentry-cli releases new $_SENTRY_RELEASE --org=fancanon --project=fancanon-api && sentry-cli sourcemaps upload --org=fancanon --project=fancanon-api --release=$_SENTRY_RELEASE --strip-prefix 'dist/..' dist",
+    "postdeploy": "pnpm sentry:sourcemaps"
   },
   "dependencies": {
     "@hono/standard-validator": "^0.4.0",
     "@paralleldrive/cuid2": "^3.3.0",
+    "@sentry/cloudflare": "^10.70.0",
+    "@sentry/hono": "^10.70.0",
     "@valibot/to-json-schema": "^1.7.1",
     "better-auth": "^1.7.1",
     "dotenv": "^17.4.2",
@@ -31,6 +35,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@sentry/cli": "^2.58.6",
     "@types/node": "^26.1.1",
     "@types/slug": "^5.0.9",
     "@upstash/redis": "^1.38.2",

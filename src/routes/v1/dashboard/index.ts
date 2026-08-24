@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { desc, eq } from 'drizzle-orm'
 import { describeRoute, resolver } from 'hono-openapi'
+import { captureException } from '@sentry/hono/cloudflare'
 
 import { AppContext } from '@/types'
 import { withDatabase } from '@/lib/db'
@@ -38,7 +39,7 @@ app.get(
 
       return c.json({ success: true, stats }, { status: 200 })
     } catch (err) {
-      console.error(err)
+      captureException(err)
       return c.json({ success: false }, { status: 500 })
     }
   },
@@ -77,7 +78,7 @@ app.get(
 
       return c.json({ success: true, stories }, { status: 200 })
     } catch (err) {
-      console.error(err)
+      captureException(err)
 
       return c.json({ success: false }, { status: 500 })
     }

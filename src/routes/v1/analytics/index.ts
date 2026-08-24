@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { eq, sql } from 'drizzle-orm'
 import { describeRoute, resolver, validator } from 'hono-openapi'
+import { captureException } from '@sentry/hono/cloudflare'
 
 import { AppContext } from '@/types'
 import { withDatabase } from '@/lib/db'
@@ -72,7 +73,7 @@ app.post(
 
       return c.json({ success: true })
     } catch (err) {
-      console.error(err)
+      captureException(err)
       return c.json({ success: true })
     }
   },

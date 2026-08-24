@@ -33,3 +33,6 @@ lerna-debug.log*
 .DS_Store
 
 /src/generated
+
+# Sentry Config File
+.sentryclirc

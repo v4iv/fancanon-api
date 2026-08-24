@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import * as v from 'valibot'
 import { and, desc, eq, sql } from 'drizzle-orm'
 import { describeRoute, resolver, validator } from 'hono-openapi'
+import { captureException } from '@sentry/hono/cloudflare'
 
 import { AppContext } from '@/types'
 import { withDatabase } from '@/lib/db'
@@ -79,7 +80,7 @@ app.get(
         { status: 200 },
       )
     } catch (err) {
-      console.error(err)
+      captureException(err)
       return c.json({ success: false }, { status: 500 })
     }
   },
@@ -114,7 +115,7 @@ app.delete(
 
       return c.json({ success: true }, { status: 200 })
     } catch (err) {
-      console.error(err)
+      captureException(err)
       return c.json({ success: false }, { status: 500 })
     }
   },
@@ -159,7 +160,7 @@ app.delete(
 
       return c.json({ success: true }, { status: 200 })
     } catch (err) {
-      console.error(err)
+      captureException(err)
       return c.json({ success: false }, { status: 500 })
     }
   },
