@@ -10,5 +10,5 @@ Sentry.init({
 
   // Set tracesSampleRate to 1.0 to capture 100%
   // of spans for tracing.
-  tracesSampleRate: 1.0,
+  tracesSampleRate: 0.1,
 })
