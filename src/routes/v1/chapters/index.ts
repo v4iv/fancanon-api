@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { eq, and, sql, isNull, asc } from 'drizzle-orm'
 import { describeRoute, resolver, validator } from 'hono-openapi'
+import { captureException } from '@sentry/hono/cloudflare'
 
 import { AppContext } from '@/types'
 import { withDatabase } from '@/lib/db'
@@ -75,7 +76,7 @@ app.delete(
 
       return c.json({ success: false }, { status: 403 })
     } catch (err) {
-      console.error(err)
+      captureException(err)
       return c.json({ success: false }, { status: 500 })
     }
   },
@@ -126,7 +127,7 @@ app.get(
 
       return c.json({ success: true })
     } catch (err) {
-      console.error(err)
+      captureException(err)
       return c.json({ success: false }, { status: 500 })
     }
   },
@@ -167,7 +168,7 @@ app.delete(
 
       return c.json({ success: true })
     } catch (err) {
-      console.error(err)
+      captureException(err)
       return c.json({ success: false }, { status: 500 })
     }
   },
@@ -299,7 +300,7 @@ app.get(
         next: hasMore ? page + 1 : null,
       })
     } catch (err) {
-      console.error(err)
+      captureException(err)
       return c.json({ success: false }, { status: 500 })
     }
   },

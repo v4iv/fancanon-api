@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
+import { sentry } from '@sentry/hono/cloudflare'
 import { openAPIRouteHandler } from 'hono-openapi'
 
 import { AppContext } from '@/types'
@@ -20,6 +21,22 @@ import { dashboard } from '@/routes/v1/dashboard'
 import { notifications } from '@/routes/v1/notifications'
 
 const app = new Hono<AppContext>()
+
+app.use(
+  sentry(app, (env) => ({
+    dsn: env.SENTRY_DSN,
+    dataCollection: {
+      // To disable sending user data and HTTP bodies, uncomment the lines below. For more info visit:
+      // https://docs.sentry.io/platforms/javascript/guides/hono/configuration/options/#dataCollection
+      // userInfo: false,
+      // httpBodies: [],
+    },
+
+    // Set tracesSampleRate to 1.0 to capture 100%
+    // of spans for tracing.
+    tracesSampleRate: 1.0,
+  })),
+)
 
 // cors
 app.use('*', async (c, next) => {
