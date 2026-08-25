@@ -44,9 +44,15 @@ app.use('*', async (c, next) => {
 
   const corsMiddlewareHandler = cors({
     origin: (origin) => {
-      if (!origin) return null
+      // If no origin, fallback to event/allowed origins or request host
+      if (!origin) return c.req.header('host') ? `https://${c.req.header('host')}` : null
+
+      // Allow localhost
       if (origin.startsWith('http://localhost:')) return origin
+
+      // Check matcher
       if (isAllowedHost(origin)) return origin
+
       return null
     },
     credentials: true,
