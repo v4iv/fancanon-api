@@ -1,6 +1,8 @@
 import { Hono } from 'hono'
+import { sValidator as validator } from '@hono/standard-validator'
+// import * as v from 'valibot'
 import { eq, and, sql, isNull, asc } from 'drizzle-orm'
-import { describeRoute, resolver, validator } from 'hono-openapi'
+// import { describeRoute, resolver, validator } from 'hono-openapi'
 import { captureException } from '@sentry/hono/cloudflare'
 
 import { AppContext } from '@/types'
@@ -9,26 +11,25 @@ import { CommentType } from '@/lib/types'
 import { bookmark, chapter, comment, commentLike, story } from '@/lib/db/schema'
 import {
   requestParamSchema,
-  actionResponseSchema,
   requestQuerySchema,
-  commentsResponseSchema,
+  // commentsResponseSchema,
 } from './schema'
 
 const app = new Hono<AppContext>()
 
 app.delete(
   '/:chapterId',
-  describeRoute({
-    description: 'Delete a chapter.',
-    responses: {
-      200: {
-        description: 'Successful response',
-        content: {
-          'application/json': { schema: resolver(actionResponseSchema) },
-        },
-      },
-    },
-  }),
+  // describeRoute({
+  //   description: 'Delete a chapter.',
+  //   responses: {
+  //     200: {
+  //       description: 'Successful response',
+  //       content: {
+  //         'application/json': { schema: resolver(v.object({ success: v.boolean() })) },
+  //       },
+  //     },
+  //   },
+  // }),
   validator('param', requestParamSchema),
   withDatabase,
   async (c) => {
@@ -84,17 +85,17 @@ app.delete(
 
 app.get(
   '/:chapterId/bookmark',
-  describeRoute({
-    description: 'Add bookmark to a chapter.',
-    responses: {
-      200: {
-        description: 'Successful response',
-        content: {
-          'application/json': { schema: resolver(actionResponseSchema) },
-        },
-      },
-    },
-  }),
+  // describeRoute({
+  //   description: 'Add bookmark to a chapter.',
+  //   responses: {
+  //     200: {
+  //       description: 'Successful response',
+  //       content: {
+  //         'application/json': { schema: resolver(v.object({ success: v.boolean() })) },
+  //       },
+  //     },
+  //   },
+  // }),
   validator('param', requestParamSchema),
   withDatabase,
   async (c) => {
@@ -135,17 +136,17 @@ app.get(
 
 app.delete(
   '/:chapterId/bookmark',
-  describeRoute({
-    description: 'Remove bookmark from a chapter.',
-    responses: {
-      200: {
-        description: 'Successful response',
-        content: {
-          'application/json': { schema: resolver(actionResponseSchema) },
-        },
-      },
-    },
-  }),
+  // describeRoute({
+  //   description: 'Remove bookmark from a chapter.',
+  //   responses: {
+  //     200: {
+  //       description: 'Successful response',
+  //       content: {
+  //         'application/json': { schema: resolver(v.object({ success: v.boolean() })) },
+  //       },
+  //     },
+  //   },
+  // }),
   validator('param', requestParamSchema),
   withDatabase,
   async (c) => {
@@ -176,17 +177,17 @@ app.delete(
 
 app.get(
   '/:chapterId/comments',
-  describeRoute({
-    description: 'Get a paginated list of all comments of a chapter.',
-    responses: {
-      200: {
-        description: 'Successful response',
-        content: {
-          'application/json': { schema: resolver(commentsResponseSchema) },
-        },
-      },
-    },
-  }),
+  // describeRoute({
+  //   description: 'Get a paginated list of all comments of a chapter.',
+  //   responses: {
+  //     200: {
+  //       description: 'Successful response',
+  //       content: {
+  //         'application/json': { schema: resolver(commentsResponseSchema) },
+  //       },
+  //     },
+  //   },
+  // }),
   validator('query', requestQuerySchema),
   validator('param', requestParamSchema),
   withDatabase,

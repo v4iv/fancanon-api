@@ -1,30 +1,34 @@
 import { Hono } from 'hono'
-import { describeRoute, resolver, validator } from 'hono-openapi'
+import { sValidator as validator } from '@hono/standard-validator'
 import { and, asc, desc, eq, inArray, or, sql, type SQL } from 'drizzle-orm'
+// import { describeRoute, resolver, validator } from 'hono-openapi'
 import { captureException } from '@sentry/hono/cloudflare'
 
 import { AppContext } from '@/types'
 import { withDatabase } from '@/lib/db'
 import { story, tag } from '@/lib/db/schema'
 import { storyWithForUser } from '@/lib/helpers/story-helper'
-import { searchQuerySchema, searchResponseSchema } from './schema'
+import {
+  searchQuerySchema,
+  // searchResponseSchema
+} from './schema'
 import { SIMILARITY_THRESHOLD, WORD_SIMILARITY_THRESHOLD } from '@/lib/constants'
 
 const app = new Hono<AppContext>()
 
 app.get(
   '/',
-  describeRoute({
-    description: 'Searches the query against story title, desc, tags or author',
-    responses: {
-      200: {
-        description: 'Successful response',
-        content: {
-          'application/json': { schema: resolver(searchResponseSchema) },
-        },
-      },
-    },
-  }),
+  // describeRoute({
+  //   description: 'Searches the query against story title, desc, tags or author',
+  //   responses: {
+  //     200: {
+  //       description: 'Successful response',
+  //       content: {
+  //         'application/json': { schema: resolver(searchResponseSchema) },
+  //       },
+  //     },
+  //   },
+  // }),
   validator('query', searchQuerySchema),
   withDatabase,
   async (c) => {

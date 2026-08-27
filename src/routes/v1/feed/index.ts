@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
+import { sValidator as validator } from '@hono/standard-validator'
 import { and, desc, eq, inArray, sql } from 'drizzle-orm'
-import { describeRoute, resolver, validator } from 'hono-openapi'
+// import { describeRoute, resolver, validator } from 'hono-openapi'
 import { captureException } from '@sentry/hono/cloudflare'
 
 import { AppContext } from '@/types'
@@ -16,25 +17,25 @@ import { storyWithForUser } from '@/lib/helpers/story-helper'
 import {
   feedParamSchema,
   feedQuerySchema,
-  feedResponseSchema,
-  userFeedResponseSchema,
+  // feedResponseSchema,
+  // userFeedResponseSchema,
 } from './schema'
 
 const app = new Hono<AppContext>()
 
 app.get(
   '/',
-  describeRoute({
-    description: "Fetches a paginated list of the user's feed",
-    responses: {
-      200: {
-        description: 'Successful response',
-        content: {
-          'application/json': { schema: resolver(userFeedResponseSchema) },
-        },
-      },
-    },
-  }),
+  // describeRoute({
+  //   description: "Fetches a paginated list of the user's feed",
+  //   responses: {
+  //     200: {
+  //       description: 'Successful response',
+  //       content: {
+  //         'application/json': { schema: resolver(userFeedResponseSchema) },
+  //       },
+  //     },
+  //   },
+  // }),
   validator('query', feedQuerySchema),
   withDatabase,
   async (c) => {
@@ -109,18 +110,18 @@ app.get(
 
 app.get(
   '/new',
-  describeRoute({
-    description:
-      'Fetches a paginated list of the most recently published stories sorted by creation date.',
-    responses: {
-      200: {
-        description: 'Successful response',
-        content: {
-          'application/json': { schema: resolver(feedResponseSchema) },
-        },
-      },
-    },
-  }),
+  // describeRoute({
+  //   description:
+  //     'Fetches a paginated list of the most recently published stories sorted by creation date.',
+  //   responses: {
+  //     200: {
+  //       description: 'Successful response',
+  //       content: {
+  //         'application/json': { schema: resolver(feedResponseSchema) },
+  //       },
+  //     },
+  //   },
+  // }),
   validator('query', feedQuerySchema),
   withDatabase,
   async (c) => {
@@ -168,18 +169,18 @@ app.get(
 
 app.get(
   '/hot',
-  describeRoute({
-    description:
-      'Fetches globally trending stories ordered by a Hacker-News-style time-decay score. Score is calculated using weighted user interactions (likes, read laters) relative to story age.',
-    responses: {
-      200: {
-        description: 'Successful response',
-        content: {
-          'application/json': { schema: resolver(feedResponseSchema) },
-        },
-      },
-    },
-  }),
+  // describeRoute({
+  //   description:
+  //     'Fetches globally trending stories ordered by a Hacker-News-style time-decay score. Score is calculated using weighted user interactions (likes, read laters) relative to story age.',
+  //   responses: {
+  //     200: {
+  //       description: 'Successful response',
+  //       content: {
+  //         'application/json': { schema: resolver(feedResponseSchema) },
+  //       },
+  //     },
+  //   },
+  // }),
   validator('query', feedQuerySchema),
   withDatabase,
   async (c) => {
@@ -280,18 +281,18 @@ app.get(
 
 app.get(
   '/:slug',
-  describeRoute({
-    description:
-      'Fetches a decay-ranked trending feed for stories within a specific category. Supports additional filtering by language, completion status, and content rating.',
-    responses: {
-      200: {
-        description: 'Successful response',
-        content: {
-          'application/json': { schema: resolver(feedResponseSchema) },
-        },
-      },
-    },
-  }),
+  // describeRoute({
+  //   description:
+  //     'Fetches a decay-ranked trending feed for stories within a specific category. Supports additional filtering by language, completion status, and content rating.',
+  //   responses: {
+  //     200: {
+  //       description: 'Successful response',
+  //       content: {
+  //         'application/json': { schema: resolver(feedResponseSchema) },
+  //       },
+  //     },
+  //   },
+  // }),
   validator('param', feedParamSchema),
   validator('query', feedQuerySchema),
   withDatabase,

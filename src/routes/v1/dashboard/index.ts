@@ -1,11 +1,11 @@
 import { Hono } from 'hono'
 import { desc, eq } from 'drizzle-orm'
-import { describeRoute, resolver } from 'hono-openapi'
+// import { describeRoute, resolver } from 'hono-openapi'
 import { captureException } from '@sentry/hono/cloudflare'
 
 import { AppContext } from '@/types'
 import { withDatabase } from '@/lib/db'
-import { statsResponseSchema, storiesResponseSchema } from './schema'
+// import { storiesResponseSchema, statsResponseSchema } from './schema'
 import { getAuthorStats } from '@/lib/helpers/stats-helper'
 import { story } from '@/lib/db/schema'
 
@@ -13,17 +13,17 @@ const app = new Hono<AppContext>()
 
 app.get(
   '/stats',
-  describeRoute({
-    description: 'Fetch Author Stats',
-    responses: {
-      200: {
-        description: 'Successful response',
-        content: {
-          'application/json': { schema: resolver(statsResponseSchema) },
-        },
-      },
-    },
-  }),
+  // describeRoute({
+  //   description: 'Fetch Author Stats',
+  //   responses: {
+  //     200: {
+  //       description: 'Successful response',
+  //       content: {
+  //         'application/json': { schema: resolver(statsResponseSchema) },
+  //       },
+  //     },
+  //   },
+  // }),
   withDatabase,
   async (c) => {
     const user = c.get('user')
@@ -47,17 +47,17 @@ app.get(
 
 app.get(
   '/stories',
-  describeRoute({
-    description: 'Fetch All Stories',
-    responses: {
-      200: {
-        description: 'Successful response',
-        content: {
-          'application/json': { schema: resolver(storiesResponseSchema) },
-        },
-      },
-    },
-  }),
+  // describeRoute({
+  //   description: 'Fetch All Stories',
+  //   responses: {
+  //     200: {
+  //       description: 'Successful response',
+  //       content: {
+  //         'application/json': { schema: resolver(storiesResponseSchema) },
+  //       },
+  //     },
+  //   },
+  // }),
   withDatabase,
   async (c) => {
     const user = c.get('user')
