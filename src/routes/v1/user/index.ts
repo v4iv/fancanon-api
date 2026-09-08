@@ -1,8 +1,8 @@
 import { Hono } from 'hono'
-import { sValidator as validator } from '@hono/standard-validator'
-// import * as v from 'valibot'
+// import { sValidator as validator } from '@hono/standard-validator'
+import * as v from 'valibot'
 import { and, desc, eq, inArray, sql } from 'drizzle-orm'
-// import { describeRoute, resolver, validator } from 'hono-openapi'
+import { describeRoute, resolver, validator } from 'hono-openapi'
 import { captureException } from '@sentry/hono/cloudflare'
 
 import { AppContext } from '@/types'
@@ -23,25 +23,25 @@ import {
 import {
   requestParamSchema,
   requestQuerySchema,
-  // responseSchema,
-  // commentResponseSchema,
+  responseSchema,
+  commentResponseSchema,
 } from './schema'
 
 const app = new Hono<AppContext>()
 
 app.get(
   '/likes',
-  // describeRoute({
-  //   description: 'Fetch a paginated list of liked stories of the authenticated user.',
-  //   responses: {
-  //     200: {
-  //       description: 'Successful response',
-  //       content: {
-  //         'application/json': { schema: resolver(responseSchema) },
-  //       },
-  //     },
-  //   },
-  // }),
+  describeRoute({
+    description: 'Fetch a paginated list of liked stories of the authenticated user.',
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': { schema: resolver(responseSchema) },
+        },
+      },
+    },
+  }),
   validator('query', requestQuerySchema),
   withDatabase,
   async (c) => {
@@ -107,17 +107,17 @@ app.get(
 
 app.get(
   '/read-later',
-  // describeRoute({
-  //   description: 'Fetch a paginated list of read later stories of the authenticated user.',
-  //   responses: {
-  //     200: {
-  //       description: 'Successful response',
-  //       content: {
-  //         'application/json': { schema: resolver(responseSchema) },
-  //       },
-  //     },
-  //   },
-  // }),
+  describeRoute({
+    description: 'Fetch a paginated list of read later stories of the authenticated user.',
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': { schema: resolver(responseSchema) },
+        },
+      },
+    },
+  }),
   validator('query', requestQuerySchema),
   withDatabase,
   async (c) => {
@@ -183,17 +183,17 @@ app.get(
 
 app.get(
   '/comments',
-  // describeRoute({
-  //   description: 'Fetch a paginated list of comments of the authenticated user.',
-  //   responses: {
-  //     200: {
-  //       description: 'Successful response',
-  //       content: {
-  //         'application/json': { schema: resolver(commentResponseSchema) },
-  //       },
-  //     },
-  //   },
-  // }),
+  describeRoute({
+    description: 'Fetch a paginated list of comments of the authenticated user.',
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': { schema: resolver(commentResponseSchema) },
+        },
+      },
+    },
+  }),
   validator('query', requestQuerySchema),
   withDatabase,
   async (c) => {
@@ -263,17 +263,17 @@ app.get(
 
 app.get(
   '/bookmarks',
-  // describeRoute({
-  //   description: 'Fetch a paginated list of bookmarks of the authenticated user.',
-  //   responses: {
-  //     200: {
-  //       description: 'Successful response',
-  //       content: {
-  //         'application/json': { schema: resolver(v.any()) },
-  //       },
-  //     },
-  //   },
-  // }),
+  describeRoute({
+    description: 'Fetch a paginated list of bookmarks of the authenticated user.',
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': { schema: resolver(v.any()) },
+        },
+      },
+    },
+  }),
   validator('query', requestQuerySchema),
   withDatabase,
   async (c) => {
@@ -400,17 +400,17 @@ app.get(
 
 app.get(
   '/:username/follow',
-  // describeRoute({
-  //   description: 'Follow a user',
-  //   responses: {
-  //     200: {
-  //       description: 'Successful response',
-  //       content: {
-  //         'application/json': { schema: resolver(v.object({ success: v.boolean() })) },
-  //       },
-  //     },
-  //   },
-  // }),
+  describeRoute({
+    description: 'Follow a user',
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': { schema: resolver(v.object({ success: v.boolean() })) },
+        },
+      },
+    },
+  }),
   validator('param', requestParamSchema),
   withDatabase,
   async (c) => {
@@ -472,17 +472,17 @@ app.get(
 
 app.delete(
   '/:username/follow',
-  // describeRoute({
-  //   description: 'Unfollow a user',
-  //   responses: {
-  //     200: {
-  //       description: 'Successful response',
-  //       content: {
-  //         'application/json': { schema: resolver(v.object({ success: v.boolean() })) },
-  //       },
-  //     },
-  //   },
-  // }),
+  describeRoute({
+    description: 'Unfollow a user',
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': { schema: resolver(v.object({ success: v.boolean() })) },
+        },
+      },
+    },
+  }),
   validator('param', requestParamSchema),
   withDatabase,
   async (c) => {
@@ -542,17 +542,17 @@ app.delete(
 
 app.get(
   '/:username/stories',
-  // describeRoute({
-  //   description: 'Fetch a paginated list of stories written by the authenticated user.',
-  //   responses: {
-  //     200: {
-  //       description: 'Successful response',
-  //       content: {
-  //         'application/json': { schema: resolver(responseSchema) },
-  //       },
-  //     },
-  //   },
-  // }),
+  describeRoute({
+    description: 'Fetch a paginated list of stories written by the authenticated user.',
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': { schema: resolver(responseSchema) },
+        },
+      },
+    },
+  }),
   validator('param', requestParamSchema),
   validator('query', requestQuerySchema),
   withDatabase,
@@ -615,17 +615,17 @@ app.get(
 
 app.get(
   '/:username',
-  // describeRoute({
-  //   description: 'Fetch user details by the username param.',
-  //   responses: {
-  //     200: {
-  //       description: 'Successful response',
-  //       content: {
-  //         'application/json': { schema: resolver(v.any()) },
-  //       },
-  //     },
-  //   },
-  // }),
+  describeRoute({
+    description: 'Fetch user details by the username param.',
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': { schema: resolver(v.any()) },
+        },
+      },
+    },
+  }),
   validator('param', requestParamSchema),
   withDatabase,
   async (c) => {

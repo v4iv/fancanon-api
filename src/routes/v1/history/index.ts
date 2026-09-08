@@ -1,34 +1,30 @@
 import { Hono } from 'hono'
-import { sValidator as validator } from '@hono/standard-validator'
-// import * as v from 'valibot'
+// import { sValidator as validator } from '@hono/standard-validator'
+import * as v from 'valibot'
 import { and, desc, eq, sql } from 'drizzle-orm'
-// import { describeRoute, resolver, validator } from 'hono-openapi'
+import { describeRoute, resolver, validator } from 'hono-openapi'
 import { captureException } from '@sentry/hono/cloudflare'
 
 import { AppContext } from '@/types'
 import { withDatabase } from '@/lib/db'
 import { history } from '@/lib/db/schema'
-import {
-  requestParamSchema,
-  requestQuerySchema,
-  // responseSchema
-} from './schema'
+import { requestParamSchema, requestQuerySchema, responseSchema } from './schema'
 
 const app = new Hono<AppContext>()
 
 app.get(
   '/',
-  // describeRoute({
-  //   description: "Fetch a paginated list of user's history.",
-  //   responses: {
-  //     200: {
-  //       description: 'Successful response',
-  //       content: {
-  //         'application/json': { schema: resolver(responseSchema) },
-  //       },
-  //     },
-  //   },
-  // }),
+  describeRoute({
+    description: "Fetch a paginated list of user's history.",
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': { schema: resolver(responseSchema) },
+        },
+      },
+    },
+  }),
   validator('query', requestQuerySchema),
   withDatabase,
   async (c) => {
@@ -93,17 +89,17 @@ app.get(
 
 app.delete(
   '/',
-  // describeRoute({
-  //   description: 'Clear all history of a user.',
-  //   responses: {
-  //     200: {
-  //       description: 'Successful response',
-  //       content: {
-  //         'application/json': { schema: resolver(v.object({ success: v.boolean() })) },
-  //       },
-  //     },
-  //   },
-  // }),
+  describeRoute({
+    description: 'Clear all history of a user.',
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': { schema: resolver(v.object({ success: v.boolean() })) },
+        },
+      },
+    },
+  }),
   withDatabase,
   async (c) => {
     const user = c.get('user')
@@ -128,17 +124,17 @@ app.delete(
 
 app.delete(
   '/:chapterId',
-  // describeRoute({
-  //   description: "Delete a single item from a user's history",
-  //   responses: {
-  //     200: {
-  //       description: 'Successful response',
-  //       content: {
-  //         'application/json': { schema: resolver(v.object({ success: v.boolean() })) },
-  //       },
-  //     },
-  //   },
-  // }),
+  describeRoute({
+    description: "Delete a single item from a user's history",
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': { schema: resolver(v.object({ success: v.boolean() })) },
+        },
+      },
+    },
+  }),
   validator('param', requestParamSchema),
   withDatabase,
   async (c) => {

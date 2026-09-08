@@ -1,16 +1,14 @@
 import { Hono } from 'hono'
-import { sValidator as validator } from '@hono/standard-validator'
+import * as v from 'valibot'
+// import { sValidator as validator } from '@hono/standard-validator'
 import { eq, and, sql } from 'drizzle-orm'
-// import { describeRoute, resolver, validator } from 'hono-openapi'
+import { describeRoute, resolver, validator } from 'hono-openapi'
 import { captureException } from '@sentry/hono/cloudflare'
 
 import { AppContext } from '@/types'
 import { withDatabase } from '@/lib/db'
 import { activity, chapter, comment, commentLike, notification, story } from '@/lib/db/schema'
-import {
-  requestParamSchema,
-  // actionResponseSchema
-} from './schema'
+import { requestParamSchema } from './schema'
 
 const app = new Hono<AppContext>()
 
@@ -22,17 +20,17 @@ const app = new Hono<AppContext>()
 // issues by leaving replies and counts untouched.
 app.delete(
   '/:commentId',
-  // describeRoute({
-  //   description: 'Delete a comment.',
-  //   responses: {
-  //     200: {
-  //       description: 'Successful response',
-  //       content: {
-  //         'application/json': { schema: resolver(actionResponseSchema) },
-  //       },
-  //     },
-  //   },
-  // }),
+  describeRoute({
+    description: 'Delete a comment.',
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': { schema: resolver(v.object({ success: v.boolean() })) },
+        },
+      },
+    },
+  }),
   validator('param', requestParamSchema),
   withDatabase,
   async (c) => {
@@ -101,17 +99,17 @@ app.delete(
 
 app.get(
   '/:commentId/like',
-  // describeRoute({
-  //   description: 'Like a comment.',
-  //   responses: {
-  //     200: {
-  //       description: 'Successful response',
-  //       content: {
-  //         'application/json': { schema: resolver(actionResponseSchema) },
-  //       },
-  //     },
-  //   },
-  // }),
+  describeRoute({
+    description: 'Like a comment.',
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': { schema: resolver(v.object({ success: v.boolean() })) },
+        },
+      },
+    },
+  }),
   validator('param', requestParamSchema),
   withDatabase,
   async (c) => {
@@ -171,17 +169,17 @@ app.get(
 
 app.delete(
   '/:commentId/like',
-  // describeRoute({
-  //   description: 'Unlike a liked comment.',
-  //   responses: {
-  //     200: {
-  //       description: 'Successful response',
-  //       content: {
-  //         'application/json': { schema: resolver(actionResponseSchema) },
-  //       },
-  //     },
-  //   },
-  // }),
+  describeRoute({
+    description: 'Unlike a liked comment.',
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': { schema: resolver(v.object({ success: v.boolean() })) },
+        },
+      },
+    },
+  }),
   validator('param', requestParamSchema),
   withDatabase,
   async (c) => {

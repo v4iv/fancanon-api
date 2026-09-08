@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { sentry } from '@sentry/hono/cloudflare'
-// import { openAPIRouteHandler } from 'hono-openapi'
+import { openAPIRouteHandler } from 'hono-openapi'
 
 import { AppContext } from '@/types'
 import { getHostMatcher } from '@/lib/utils'
@@ -107,21 +107,21 @@ app.route('/v1/dashboard', dashboard)
 app.route('/v1/notifications', notifications)
 
 // OpenAPI spec to be consumed by Scalar/Swagger
-// app.get(
-//   '/openapi',
-//   openAPIRouteHandler(app, {
-//     documentation: {
-//       info: {
-//         title: 'Fancanon API Documentation',
-//         version: '1.0.0',
-//         description: 'API documentation for Fancanon',
-//       },
-//       servers: [
-//         { url: 'http://localhost:8787', description: 'Local Server' },
-//         { url: 'https://api.fancanon.com', description: 'Production Server' },
-//       ],
-//     },
-//   }),
-// )
+app.get(
+  '/openapi',
+  openAPIRouteHandler(app, {
+    documentation: {
+      info: {
+        title: 'Fancanon API Documentation',
+        version: '1.0.0',
+        description: 'API documentation for Fancanon',
+      },
+      servers: [
+        { url: 'http://localhost:8787', description: 'Local Server' },
+        { url: 'https://api.fancanon.com', description: 'Production Server' },
+      ],
+    },
+  }),
+)
 
 export default app

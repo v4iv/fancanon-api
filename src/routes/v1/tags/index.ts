@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
-import { sValidator as validator } from '@hono/standard-validator'
+// import { sValidator as validator } from '@hono/standard-validator'
 import { and, asc, desc, eq, ilike, inArray, sql } from 'drizzle-orm'
-// import { describeRoute, resolver, validator } from 'hono-openapi'
+import { describeRoute, resolver, validator } from 'hono-openapi'
 import { captureException } from '@sentry/hono/cloudflare'
 
 import { AppContext } from '@/types'
@@ -11,8 +11,8 @@ import {
   requestParamSchema,
   requestQuerySchema,
   searchRequestQuerySchema,
-  // responseSchema,
-  // searchResponseSchema,
+  responseSchema,
+  searchResponseSchema,
 } from './schema'
 import {
   buildStoryFilterSql,
@@ -25,17 +25,17 @@ const app = new Hono<AppContext>()
 
 app.get(
   '/search',
-  // describeRoute({
-  //   description: 'Search tags API.',
-  //   responses: {
-  //     200: {
-  //       description: 'Successful response',
-  //       content: {
-  //         'application/json': { schema: resolver(searchResponseSchema) },
-  //       },
-  //     },
-  //   },
-  // }),
+  describeRoute({
+    description: 'Search tags API.',
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': { schema: resolver(searchResponseSchema) },
+        },
+      },
+    },
+  }),
   validator('query', searchRequestQuerySchema),
   withDatabase,
   async (c) => {
@@ -72,17 +72,17 @@ app.get(
 
 app.get(
   '/:slug',
-  // describeRoute({
-  //   description: 'Fetch stories from tag slug path param.',
-  //   responses: {
-  //     200: {
-  //       description: 'Successful response',
-  //       content: {
-  //         'application/json': { schema: resolver(responseSchema) },
-  //       },
-  //     },
-  //   },
-  // }),
+  describeRoute({
+    description: 'Fetch stories from tag slug path param.',
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': { schema: resolver(responseSchema) },
+        },
+      },
+    },
+  }),
   validator('query', requestQuerySchema),
   validator('param', requestParamSchema),
   withDatabase,

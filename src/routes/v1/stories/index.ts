@@ -1,8 +1,8 @@
 import { Hono } from 'hono'
-// import * as v from 'valibot'
-import { sValidator as validator } from '@hono/standard-validator'
+import * as v from 'valibot'
+// import { sValidator as validator } from '@hono/standard-validator'
 import { and, asc, eq, sql } from 'drizzle-orm'
-// import { describeRoute, resolver, validator } from 'hono-openapi'
+import { describeRoute, resolver, validator } from 'hono-openapi'
 import { captureException } from '@sentry/hono/cloudflare'
 
 import { AppContext } from '@/types'
@@ -11,26 +11,26 @@ import { storyWithForUser } from '@/lib/helpers/story-helper'
 import { activity, bookmark, chapter, like, notification, readLater, story } from '@/lib/db/schema'
 import {
   storyParamSchema,
-  // ratingResponseSchema,
-  // storyResponseSchema,
-  // chaptersResponseSchema,
+  ratingResponseSchema,
+  storyResponseSchema,
+  chaptersResponseSchema,
 } from './schema'
 
 const app = new Hono<AppContext>()
 
 app.get(
   '/:storyId',
-  // describeRoute({
-  //   description: 'Fetches the story',
-  //   responses: {
-  //     200: {
-  //       description: 'Successful response',
-  //       content: {
-  //         'application/json': { schema: resolver(storyResponseSchema) },
-  //       },
-  //     },
-  //   },
-  // }),
+  describeRoute({
+    description: 'Fetches the story',
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': { schema: resolver(storyResponseSchema) },
+        },
+      },
+    },
+  }),
   validator('param', storyParamSchema),
   withDatabase,
   async (c) => {
@@ -54,17 +54,17 @@ app.get(
 
 app.delete(
   '/:storyId',
-  // describeRoute({
-  //   description: 'Deletes the story',
-  //   responses: {
-  //     200: {
-  //       description: 'Successful response',
-  //       content: {
-  //         'application/json': { schema: resolver(v.object({ success: v.boolean() })) },
-  //       },
-  //     },
-  //   },
-  // }),
+  describeRoute({
+    description: 'Deletes the story',
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': { schema: resolver(v.object({ success: v.boolean() })) },
+        },
+      },
+    },
+  }),
   validator('param', storyParamSchema),
   withDatabase,
   async (c) => {
@@ -106,18 +106,18 @@ app.delete(
 
 app.get(
   '/:storyId/like',
-  // describeRoute({
-  //   description:
-  //     'Likes a story for the authenticated user within an atomic transaction. Updates story like count, records user activity, and dispatches a notification to the author.',
-  //   responses: {
-  //     200: {
-  //       description: 'Successful response',
-  //       content: {
-  //         'application/json': { schema: resolver(v.object({ success: v.boolean() })) },
-  //       },
-  //     },
-  //   },
-  // }),
+  describeRoute({
+    description:
+      'Likes a story for the authenticated user within an atomic transaction. Updates story like count, records user activity, and dispatches a notification to the author.',
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': { schema: resolver(v.object({ success: v.boolean() })) },
+        },
+      },
+    },
+  }),
   validator('param', storyParamSchema),
   withDatabase,
   async (c) => {
@@ -178,18 +178,18 @@ app.get(
 
 app.delete(
   '/:storyId/like',
-  // describeRoute({
-  //   description:
-  //     "Removes a story like for the authenticated user within an atomic transaction. Decrements the story's like count and purges associated activity and notification entries.",
-  //   responses: {
-  //     200: {
-  //       description: 'Successful response',
-  //       content: {
-  //         'application/json': { schema: resolver(v.object({ success: v.boolean() })) },
-  //       },
-  //     },
-  //   },
-  // }),
+  describeRoute({
+    description:
+      "Removes a story like for the authenticated user within an atomic transaction. Decrements the story's like count and purges associated activity and notification entries.",
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': { schema: resolver(v.object({ success: v.boolean() })) },
+        },
+      },
+    },
+  }),
   validator('param', storyParamSchema),
   withDatabase,
   async (c) => {
@@ -248,18 +248,18 @@ app.delete(
 
 app.get(
   '/:storyId/read-later',
-  // describeRoute({
-  //   description:
-  //     "Saves a story to the authenticated user's read-later list within an atomic transaction and increments the story's read-later count.",
-  //   responses: {
-  //     200: {
-  //       description: 'Successful response',
-  //       content: {
-  //         'application/json': { schema: resolver(v.object({ success: v.boolean() })) },
-  //       },
-  //     },
-  //   },
-  // }),
+  describeRoute({
+    description:
+      "Saves a story to the authenticated user's read-later list within an atomic transaction and increments the story's read-later count.",
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': { schema: resolver(v.object({ success: v.boolean() })) },
+        },
+      },
+    },
+  }),
   validator('param', storyParamSchema),
   withDatabase,
   async (c) => {
@@ -313,18 +313,18 @@ app.get(
 
 app.delete(
   '/:storyId/read-later',
-  // describeRoute({
-  //   description:
-  //     "Removes a story from the authenticated user's read-later list within an atomic transaction and decrements the story's read-later count.",
-  //   responses: {
-  //     200: {
-  //       description: 'Successful response',
-  //       content: {
-  //         'application/json': { schema: resolver(v.object({ success: v.boolean() })) },
-  //       },
-  //     },
-  //   },
-  // }),
+  describeRoute({
+    description:
+      "Removes a story from the authenticated user's read-later list within an atomic transaction and decrements the story's read-later count.",
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': { schema: resolver(v.object({ success: v.boolean() })) },
+        },
+      },
+    },
+  }),
   validator('param', storyParamSchema),
   withDatabase,
   async (c) => {
@@ -377,17 +377,17 @@ app.delete(
 
 app.get(
   '/:storyId/chapters',
-  // describeRoute({
-  //   description: 'Fetches all the chapters of the story',
-  //   responses: {
-  //     200: {
-  //       description: 'Successful response',
-  //       content: {
-  //         'application/json': { schema: resolver(chaptersResponseSchema) },
-  //       },
-  //     },
-  //   },
-  // }),
+  describeRoute({
+    description: 'Fetches all the chapters of the story',
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': { schema: resolver(chaptersResponseSchema) },
+        },
+      },
+    },
+  }),
   validator('param', storyParamSchema),
   withDatabase,
   async (c) => {
@@ -429,17 +429,17 @@ app.get(
 
 app.get(
   '/:storyId/content-rating',
-  // describeRoute({
-  //   description: "Fetches the story's content rating and the author's id and username",
-  //   responses: {
-  //     200: {
-  //       description: 'Successful response',
-  //       content: {
-  //         'application/json': { schema: resolver(ratingResponseSchema) },
-  //       },
-  //     },
-  //   },
-  // }),
+  describeRoute({
+    description: "Fetches the story's content rating and the author's id and username",
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': { schema: resolver(ratingResponseSchema) },
+        },
+      },
+    },
+  }),
   validator('param', storyParamSchema),
   withDatabase,
   async (c) => {
