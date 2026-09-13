@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
+import * as v from 'valibot'
 // import { sValidator as validator } from '@hono/standard-validator'
-import { and, desc, eq, inArray, sql } from 'drizzle-orm'
+import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm'
 import { describeRoute, resolver, validator } from 'hono-openapi'
 import { captureException } from '@sentry/hono/cloudflare'
 
@@ -18,6 +19,8 @@ import {
   feedParamSchema,
   feedQuerySchema,
   feedResponseSchema,
+  indicatorResponseSchema,
+  requestSchema,
   userFeedResponseSchema,
 } from './schema'
 
@@ -376,6 +379,95 @@ app.get(
         },
         { status: 200 },
       )
+    } catch (err) {
+      captureException(err)
+      return c.json({ success: false }, { status: 500 })
+    }
+  },
+)
+
+app.post(
+  '/',
+  describeRoute({
+    description: 'Mark feed items as seen',
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': { schema: resolver(v.object({ success: v.boolean() })) },
+        },
+      },
+    },
+  }),
+  validator('json', requestSchema),
+  withDatabase,
+  async (c) => {
+    const { feedItemIds } = c.req.valid('json')
+
+    const user = c.get('user')
+
+    if (!user) {
+      return c.json({ success: false }, { status: 401 })
+    }
+
+    if (feedItemIds.length === 0) {
+      return c.json({ success: true }, { status: 200 })
+    }
+
+    const userId = user.id
+    const db = c.get('db')
+
+    try {
+      await db
+        .update(feedItem)
+        .set({ seenAt: new Date() })
+        .where(
+          and(
+            inArray(feedItem.id, feedItemIds),
+            eq(feedItem.ownerId, userId),
+            isNull(feedItem.seenAt),
+          ),
+        )
+
+      return c.json({ success: true }, { status: 200 })
+    } catch (err) {
+      captureException(err)
+      return c.json({ success: false }, { status: 500 })
+    }
+  },
+)
+
+app.get(
+  '/indicator',
+  describeRoute({
+    description: 'Get the feed item indicator with unseen feed item count.',
+    responses: {
+      200: {
+        description: 'Successful response',
+        content: {
+          'application/json': { schema: resolver(indicatorResponseSchema) },
+        },
+      },
+    },
+  }),
+  withDatabase,
+  async (c) => {
+    const user = c.get('user')
+
+    if (!user) {
+      return c.json({ success: false }, { status: 401 })
+    }
+
+    const userId = user.id
+    const db = c.get('db')
+
+    try {
+      const [{ count: unseenCount }] = await db
+        .select({ count: sql<number>`count(*)`.mapWith(Number) })
+        .from(feedItem)
+        .where(and(eq(feedItem.ownerId, userId), isNull(feedItem.seenAt)))
+
+      return c.json({ success: true, unseenCount }, { status: 200 })
     } catch (err) {
       captureException(err)
       return c.json({ success: false }, { status: 500 })

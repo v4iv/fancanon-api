@@ -78,3 +78,12 @@ export const userFeedResponseSchema = v.object({
   next: v.nullable(v.number()),
   hasMore: v.boolean(),
 })
+
+export const requestSchema = v.object({
+  feedItemIds: v.array(v.string()),
+})
+
+export const indicatorResponseSchema = v.object({
+  success: v.boolean(),
+  unseenCount: v.number(),
+})
