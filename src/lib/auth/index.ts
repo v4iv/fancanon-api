@@ -1,7 +1,8 @@
 import postgres from 'postgres'
-import { username } from 'better-auth/plugins'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
+import { dash } from '@better-auth/infra'
+import { username } from 'better-auth/plugins'
 import { betterAuth, type BetterAuthOptions } from 'better-auth/minimal'
 
 import { RESTRICTED_USERNAMES } from '@/lib/constants'
@@ -53,22 +54,6 @@ const options = {
       },
     },
   },
-  plugins: [
-    username({
-      usernameValidator: (username) => {
-        const normalized = username.trim().toLowerCase()
-
-        return (
-          !RESTRICTED_USERNAMES.some(
-            (restricted) =>
-              normalized === restricted ||
-              normalized.startsWith(restricted) ||
-              normalized.endsWith(restricted),
-          ) && /^[a-zA-Z0-9_.]+$/.test(username)
-        )
-      },
-    }),
-  ],
 } satisfies BetterAuthOptions
 
 /**
@@ -134,6 +119,25 @@ export const auth = (env: CloudflareBindings): ReturnType<typeof betterAuth<any>
         },
       },
     },
+    plugins: [
+      username({
+        usernameValidator: (username) => {
+          const normalized = username.trim().toLowerCase()
+
+          return (
+            !RESTRICTED_USERNAMES.some(
+              (restricted) =>
+                normalized === restricted ||
+                normalized.startsWith(restricted) ||
+                normalized.endsWith(restricted),
+            ) && /^[a-zA-Z0-9_.]+$/.test(username)
+          )
+        },
+      }),
+      dash({
+        apiKey: env.BETTER_AUTH_API_KEY,
+      }),
+    ],
 
     ...options,
   })
