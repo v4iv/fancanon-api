@@ -1,14 +1,40 @@
-import path from 'node:path'
 import { defineConfig } from 'vitest/config'
+import { cloudflareTest } from '@cloudflare/vitest-plugin'
+import path from 'node:path'
 
 export default defineConfig({
   test: {
-    environment: 'node',
-    include: ['tests/**/*.test.ts'],
-  },
-  resolve: {
-    alias: {
-      '@': path.resolve(import.meta.dirname, './src'),
-    },
+    projects: [
+      {
+        test: {
+          name: 'node',
+          include: ['tests/unit/**/*.test.ts', 'tests/integration/**/*.test.ts'],
+          environment: 'node',
+          globals: true,
+        },
+        resolve: {
+          alias: {
+            '@': path.resolve(import.meta.dirname, './src'),
+          },
+        },
+      },
+      {
+        plugins: [
+          cloudflareTest({
+            wrangler: { configPath: './wrangler.jsonc' },
+          }),
+        ],
+        test: {
+          name: 'worker',
+          include: ['tests/worker/**/*.test.ts'],
+          globals: true,
+        },
+        resolve: {
+          alias: {
+            '@': path.resolve(import.meta.dirname, './src'),
+          },
+        },
+      },
+    ],
   },
 })
