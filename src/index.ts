@@ -46,25 +46,45 @@ app.use('*', async (c, next) => {
 
   const corsMiddlewareHandler = cors({
     origin: (origin) => {
-      // If no origin, fallback to event/allowed origins or request host
-      if (!origin) return c.req.header('host') ? `https://${c.req.header('host')}` : null
+      // Reject missing origin in CORS
+      if (!origin) return null
 
-      // Allow localhost
+      // Allow localhost in local dev
       if (origin.startsWith('http://localhost:')) return origin
 
-      // Check matcher
+      // Check matcher against ALLOWED_HOSTS
       if (isAllowedHost(origin)) return origin
 
       return null
     },
     credentials: true,
+    maxAge: 86400,
   })
 
   return corsMiddlewareHandler(c, next)
 })
 
+// strict origin guard for /v1/* data routes
+app.use('/v1/*', async (c, next) => {
+  // Allow preflight OPTIONS requests to be resolved by CORS middleware
+  if (c.req.method === 'OPTIONS') {
+    return next()
+  }
+
+  const origin = c.req.header('origin')
+  const isAllowedHost = getHostMatcher(c.env?.ALLOWED_HOSTS ?? '')
+  const isLocalDev = origin && origin.startsWith('http://localhost:')
+
+  // Rejects direct address bar visits, api.fancanon.com, and unauthorized domains
+  if (!origin || (!isLocalDev && !isAllowedHost(origin))) {
+    return c.json({ success: false, message: 'Forbidden: Access denied' }, 403)
+  }
+
+  await next()
+})
+
 // session & user middleware
-app.use('*', async (c, next) => {
+app.use('/v1/*', async (c, next) => {
   const session = await auth(c.env).api.getSession({
     headers: c.req.raw.headers,
   })
