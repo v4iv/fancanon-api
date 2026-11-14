@@ -87,3 +87,13 @@ export const indicatorResponseSchema = v.object({
   success: v.boolean(),
   unseenCount: v.number(),
 })
+
+export const fanoutRequestSchema = v.object({
+  activityId: v.string(),
+})
+
+export const fanoutResponseSchema = v.object({
+  success: v.boolean(),
+  queued: v.boolean(),
+  message: v.optional(v.string()),
+})

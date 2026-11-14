@@ -1,12 +1,14 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { sentry } from '@sentry/hono/cloudflare'
+import { sentry, withSentry } from '@sentry/hono/cloudflare'
 import { openAPIRouteHandler } from 'hono-openapi'
 
 import { AppContext } from '@/types'
 import { getHostMatcher } from '@/lib/utils'
 import { uwu } from './lib/assets/uwu'
 import { auth } from '@/lib/auth'
+import { handleFanoutBatch } from '@/lib/helpers/feed-helper'
+import type { FanoutQueueMessage } from '@/lib/types'
 import { tags } from '@/routes/v1/tags'
 import { user } from '@/routes/v1/user'
 import { feed } from '@/routes/v1/feed'
@@ -124,4 +126,17 @@ app.get(
   }),
 )
 
-export default app
+const handler: ExportedHandler<CloudflareBindings, FanoutQueueMessage> = {
+  fetch: app.fetch,
+  async queue(batch, env, ctx) {
+    await handleFanoutBatch(batch, env, ctx)
+  },
+}
+
+export default withSentry(
+  (env: CloudflareBindings) => ({
+    dsn: env.SENTRY_DSN,
+    tracesSampleRate: 0.1,
+  }),
+  handler,
+)

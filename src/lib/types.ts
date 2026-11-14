@@ -85,6 +85,14 @@ export const ChapterEmbedSchema = v.object({
 
 export type ChapterEmbedType = v.InferOutput<typeof ChapterEmbedSchema>
 
+export const FanoutMessageSchema = v.object({
+  activityId: v.string(),
+  actorId: v.optional(v.string()),
+  storyId: v.optional(v.string()),
+})
+
+export type FanoutQueueMessage = v.InferOutput<typeof FanoutMessageSchema>
+
 export const ChapterSchema = v.object({
   id: v.string(),
   storyId: v.string(),

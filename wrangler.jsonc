@@ -3,10 +3,7 @@
   "name": "fancanon-api",
   "main": "src/index.ts",
   "compatibility_date": "2026-07-16",
-  "compatibility_flags": [
-    "nodejs_compat",
-    "nodejs_compat_populate_process_env"
-  ],
+  "compatibility_flags": ["nodejs_compat", "nodejs_compat_populate_process_env"],
   "workers_dev": true,
   "preview_urls": true,
   "assets": {
@@ -22,6 +19,22 @@
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1,
+  },
+  "queues": {
+    "producers": [
+      {
+        "binding": "FANOUT_QUEUE",
+        "queue": "fancanon-fanout-queue",
+      },
+    ],
+    "consumers": [
+      {
+        "queue": "fancanon-fanout-queue",
+        "max_batch_size": 10,
+        "max_batch_timeout": 5,
+        "max_retries": 3,
+      },
+    ],
   },
   // "kv_namespaces": [
   //   {

@@ -8,14 +8,26 @@ import { captureException } from '@sentry/hono/cloudflare'
 import { AppContext } from '@/types'
 import { withDatabase } from '@/lib/db'
 import { LIKES_WEIGHT, READ_LATER_WEIGHT, TRENDING_GRAVITY } from '@/lib/constants'
-import { category, fandom, feedItem, like, readLater, story, storyFandom } from '@/lib/db/schema'
+import {
+  activity,
+  category,
+  fandom,
+  feedItem,
+  like,
+  readLater,
+  story,
+  storyFandom,
+} from '@/lib/db/schema'
 import {
   buildStoryFilterSql,
+  fanoutActivity,
   getRankedStories,
   hydrateRankedStories,
 } from '@/lib/helpers/feed-helper'
 import { storyWithForUser } from '@/lib/helpers/story-helper'
 import {
+  fanoutRequestSchema,
+  fanoutResponseSchema,
   feedParamSchema,
   feedQuerySchema,
   feedResponseSchema,
@@ -367,6 +379,76 @@ app.post(
     } catch (err) {
       captureException(err)
       return c.json({ success: false }, { status: 500 })
+    }
+  },
+)
+
+app.post(
+  '/fanout',
+  describeRoute({
+    description:
+      'Enqueues a background fanout job to deliver an activity to followers of the author, story likers, and read-later users.',
+    responses: {
+      200: {
+        description: 'Activity fanout job successfully enqueued',
+        content: {
+          'application/json': { schema: resolver(fanoutResponseSchema) },
+        },
+      },
+      401: {
+        description: 'Unauthorized',
+      },
+      403: {
+        description: 'Forbidden',
+      },
+      404: {
+        description: 'Activity not found',
+      },
+      500: {
+        description: 'Unexpected Error',
+      },
+    },
+  }),
+  validator('json', fanoutRequestSchema),
+  withDatabase,
+  async (c) => {
+    const { activityId } = c.req.valid('json')
+    const user = c.get('user')
+    if (!user) {
+      return c.json({ success: false, queued: false, message: 'Unauthorized' }, { status: 401 })
+    }
+
+    const db = c.get('db')
+
+    // Verify the authenticated user owns the activity
+    const activityRow = await db.query.activity.findFirst({
+      where: eq(activity.id, activityId),
+      columns: { actorId: true },
+    })
+
+    if (!activityRow) {
+      return c.json(
+        { success: false, queued: false, message: 'Activity not found' },
+        { status: 404 },
+      )
+    }
+
+    if (activityRow.actorId !== user.id) {
+      return c.json({ success: false, queued: false, message: 'Forbidden' }, { status: 403 })
+    }
+
+    try {
+      if (c.env.FANOUT_QUEUE) {
+        await c.env.FANOUT_QUEUE.send({ activityId })
+      } else {
+        // Fallback for environments where Queue binding is not provisioned
+        c.executionCtx.waitUntil(fanoutActivity(db, activityId))
+      }
+
+      return c.json({ success: true, queued: true }, { status: 200 })
+    } catch (err) {
+      captureException(err)
+      return c.json({ success: false, queued: false, message: 'Unexpected Error' }, { status: 500 })
     }
   },
 )

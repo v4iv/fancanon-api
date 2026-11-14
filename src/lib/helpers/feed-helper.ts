@@ -1,8 +1,11 @@
-import { and, desc, eq, inArray, sql, type SQL } from 'drizzle-orm'
+import { and, desc, eq, inArray, ne, sql, type SQL } from 'drizzle-orm'
+import { union } from 'drizzle-orm/pg-core'
+import { captureException } from '@sentry/hono/cloudflare'
 
-import type { Database } from '@/lib/db'
+import { createDb, type Database } from '@/lib/db'
 import { storyWithForUser } from '@/lib/helpers/story-helper'
-import { activity, feedItem, follow, story } from '@/lib/db/schema'
+import { activity, chapter, feedItem, follow, like, readLater, story } from '@/lib/db/schema'
+import type { FanoutQueueMessage } from '@/lib/types'
 
 interface RankedStoriesArgs {
   db: Database
@@ -114,21 +117,94 @@ export async function fanoutActivity(db: Database, activityId: string) {
     throw new Error(`fanoutActivity: activity ${activityId} not found`)
   }
 
-  const followers = await db
-    .select({ followerId: follow.followerId })
+  let storyId = activityRow.storyId
+  if (!storyId && activityRow.chapterId) {
+    const chapterRow = await db.query.chapter.findFirst({
+      where: eq(chapter.id, activityRow.chapterId),
+      columns: { storyId: true },
+    })
+    storyId = chapterRow?.storyId ?? null
+  }
+
+  // 1. Author's followers (excluding the author themselves)
+  const followersQuery = db
+    .select({ userId: follow.followerId })
     .from(follow)
-    .where(eq(follow.followeeId, activityRow.actorId))
-
-  if (followers.length === 0) return
-
-  await db
-    .insert(feedItem)
-    .values(
-      followers.map((f) => ({
-        ownerId: f.followerId,
-        activityId: activityRow.id,
-        createdAt: activityRow.createdAt,
-      })),
+    .where(
+      and(eq(follow.followeeId, activityRow.actorId), ne(follow.followerId, activityRow.actorId)),
     )
-    .onConflictDoNothing()
+
+  let recipientsQuery
+  if (storyId) {
+    // 2. People who liked the story (excluding the author)
+    const likersQuery = db
+      .select({ userId: like.userId })
+      .from(like)
+      .where(and(eq(like.storyId, storyId), ne(like.userId, activityRow.actorId)))
+
+    // 3. People who added the story to read later (excluding the author)
+    const readLaterQuery = db
+      .select({ userId: readLater.userId })
+      .from(readLater)
+      .where(and(eq(readLater.storyId, storyId), ne(readLater.userId, activityRow.actorId)))
+
+    // Deduplicate all recipient IDs using PostgreSQL UNION
+    recipientsQuery = union(followersQuery, likersQuery, readLaterQuery)
+  } else {
+    recipientsQuery = followersQuery
+  }
+
+  const recipients = await recipientsQuery
+
+  if (recipients.length === 0) return { insertedCount: 0 }
+
+  // Batch insert into feedItem in chunks to avoid query parameter limits
+  const CHUNK_SIZE = 500
+  for (let i = 0; i < recipients.length; i += CHUNK_SIZE) {
+    const chunk = recipients.slice(i, i + CHUNK_SIZE)
+    await db
+      .insert(feedItem)
+      .values(
+        chunk.map((r) => ({
+          ownerId: r.userId,
+          activityId: activityRow.id,
+          createdAt: activityRow.createdAt,
+        })),
+      )
+      .onConflictDoNothing()
+  }
+
+  return { insertedCount: recipients.length }
+}
+
+export async function handleFanoutBatch(
+  batch: MessageBatch<FanoutQueueMessage>,
+  env: CloudflareBindings,
+  _ctx?: ExecutionContext,
+) {
+  const db = createDb(env.HYPERDRIVE.connectionString)
+  const processed = new Set<string>()
+
+  for (const message of batch.messages) {
+    try {
+      const { activityId } = message.body
+      if (!activityId) {
+        message.ack()
+        continue
+      }
+
+      if (!processed.has(activityId)) {
+        await fanoutActivity(db, activityId)
+        processed.add(activityId)
+      }
+      message.ack()
+    } catch (err) {
+      captureException(err)
+      message.retry()
+    }
+  }
+}
+
+export async function enqueueFanout(queue: Queue<FanoutQueueMessage>, activityId: string) {
+  await queue.send({ activityId })
 }
