@@ -11,40 +11,25 @@ const idArrayFromJson = () =>
         try {
           const parsed = JSON.parse(val)
           if (Array.isArray(parsed)) {
-            return parsed.map((item: { value: string }) => item.value)
+            return parsed
+              .map((item) =>
+                typeof item === 'object' && item !== null && 'value' in item
+                  ? String(item.value)
+                  : String(item),
+              )
+              .filter(Boolean)
           }
           // Single selection collapsed to a bare { value } object rather
           // than a one-element array.
           if (parsed && typeof parsed === 'object' && 'value' in parsed) {
-            return [(parsed as { value: string }).value]
+            return [String((parsed as { value: unknown }).value)].filter(Boolean)
           }
           // Bare JSON string, e.g. includeTags="abc123"
-          if (typeof parsed === 'string') return [parsed]
+          if (typeof parsed === 'string' && parsed.length > 0) return [parsed]
           return null
         } catch {
           // Not valid JSON at all — a raw unquoted id like ?fandoms=abc123
-          return [val]
-        }
-      }),
-      v.array(v.string()),
-    ),
-  )
-
-const tagNameArrayFromJson = () =>
-  v.optional(
-    v.pipe(
-      v.string(),
-      v.transform((val) => {
-        try {
-          const parsed = JSON.parse(val)
-          if (Array.isArray(parsed)) return parsed
-          if (typeof parsed === 'string') return [parsed]
-          return null
-        } catch {
-          // Not valid JSON at all — a bare `includeTags=angst` is a
-          // plausible single-value shape too, so treat it as one tag
-          // rather than failing the whole request.
-          return [val]
+          return val ? [val] : null
         }
       }),
       v.array(v.string()),
@@ -52,12 +37,13 @@ const tagNameArrayFromJson = () =>
   )
 
 export const searchQuerySchema = v.object({
-  q: v.pipe(
-    v.string(),
-    v.trim(),
-    v.nonEmpty('Search query is required!'),
-    v.minLength(3, 'Search query must be atleast 3 characters'),
-    v.maxLength(30, 'Search query cannot be longer than 30 characters'),
+  q: v.fallback(
+    v.pipe(
+      v.string(),
+      v.trim(),
+      v.maxLength(100, 'Search query cannot be longer than 100 characters'),
+    ),
+    '',
   ),
 
   page: v.fallback(
@@ -107,9 +93,9 @@ export const searchQuerySchema = v.object({
 
   fandoms: idArrayFromJson(),
 
-  includeTags: tagNameArrayFromJson(),
+  includeTags: idArrayFromJson(),
 
-  excludeTags: tagNameArrayFromJson(),
+  excludeTags: idArrayFromJson(),
 })
 
 export const searchResponseSchema = v.object({

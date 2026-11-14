@@ -80,11 +80,10 @@ describe('Feed Schemas', () => {
 })
 
 describe('Search Schemas', () => {
-  it('validates minimum and maximum query string length', () => {
-    expect(() => v.parse(searchQuerySchema, { q: 'ab' })).toThrow(
-      'Search query must be atleast 3 characters',
-    )
-    expect(() => v.parse(searchQuerySchema, { q: '   ' })).toThrow('Search query is required!')
+  it('accepts short queries and defaults or trims gracefully without throwing', () => {
+    expect(v.parse(searchQuerySchema, { q: 'ab' }).q).toBe('ab')
+    expect(v.parse(searchQuerySchema, { q: '   ' }).q).toBe('')
+    expect(v.parse(searchQuerySchema, {}).q).toBe('')
     expect(v.parse(searchQuerySchema, { q: 'Harry Potter' }).q).toBe('Harry Potter')
   })
 

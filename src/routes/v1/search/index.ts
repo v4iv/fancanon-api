@@ -48,6 +48,21 @@ app.get(
     const userId = user?.id ?? ''
     const offset = (page - 1) * limit
 
+    if (query.length < 2) {
+      return c.json(
+        {
+          success: true,
+          stories: [],
+          totalCount: 0,
+          currentPage: 1,
+          next: null,
+          totalPages: 1,
+          hasMore: false,
+        },
+        { status: 200 },
+      )
+    }
+
     // websearch_to_tsquery parses raw search-box input directly — punctuation,
     // quotes, "-exclude", etc. are handled internally, so no manual
     // sanitization is needed and no syntax errors are possible. Bare words are
@@ -62,13 +77,13 @@ app.get(
 
     // A tag can't be both required and forbidden — if the client sends an
     // overlap, include wins and the contradiction is dropped from exclude.
-    let excludeTagNames = excludeTags ?? []
-    const includeTagNames = includeTags ?? []
+    let excludeTagInputs = excludeTags ?? []
+    const includeTagInputs = includeTags ?? []
 
-    if (includeTagNames.length > 0 && excludeTagNames.length > 0) {
-      const includeSet = new Set(includeTagNames)
+    if (includeTagInputs.length > 0 && excludeTagInputs.length > 0) {
+      const includeSet = new Set(includeTagInputs)
 
-      excludeTagNames = excludeTagNames.filter((name) => !includeSet.has(name))
+      excludeTagInputs = excludeTagInputs.filter((tagItem) => !includeSet.has(tagItem))
     }
 
     try {
@@ -94,36 +109,42 @@ app.get(
           .where(sql`${tag.name} % ${query}`)
         const tagMatchIds = tagMatches.map((t) => t.id)
 
-        // Resolve requested include/exclude tag *names* to ids. Exact match against
-        // tag.name (unique) rather than the fuzzy `%` used for free-text search above
-        // — these come from a controlled tag picker, not typed prose.
+        // Resolve requested include/exclude tags to cuid ids. Supports either tag
+        // CUID ids or tag names (exact match).
         let includeTagIds: string[] = []
         let impossibleIncludeMatch = false
 
-        if (includeTagNames.length > 0) {
+        if (includeTagInputs.length > 0) {
+          const uniqueInclude = [...new Set(includeTagInputs)]
           const resolved = await tx
             .select({ id: tag.id })
             .from(tag)
-            .where(inArray(tag.name, includeTagNames))
+            .where(or(inArray(tag.id, uniqueInclude), inArray(tag.name, uniqueInclude)))
           includeTagIds = resolved.map((t) => t.id)
-          // If a requested name doesn't exist as a real tag, no story can carry it —
+          // If a requested tag (by cuid or name) doesn't exist as a real tag, no story can carry it —
           // short-circuit to zero results instead of quietly requiring fewer tags
           // than the user actually asked for.
-          if (includeTagIds.length < includeTagNames.length) {
+          if (includeTagIds.length < uniqueInclude.length) {
             impossibleIncludeMatch = true
           }
         }
 
         let excludeTagIds: string[] = []
 
-        if (excludeTagNames.length > 0) {
+        if (excludeTagInputs.length > 0) {
+          const uniqueExclude = [...new Set(excludeTagInputs)]
           const resolved = await tx
             .select({ id: tag.id })
             .from(tag)
-            .where(inArray(tag.name, excludeTagNames))
+            .where(or(inArray(tag.id, uniqueExclude), inArray(tag.name, uniqueExclude)))
           excludeTagIds = resolved.map((t) => t.id)
-          // A name that doesn't exist has nothing to exclude — just drop it, no
+          // A tag that doesn't exist has nothing to exclude — just drop it, no
           // need to short-circuit like the include case.
+        }
+
+        if (includeTagIds.length > 0 && excludeTagIds.length > 0) {
+          const includeIdSet = new Set(includeTagIds)
+          excludeTagIds = excludeTagIds.filter((id) => !includeIdSet.has(id))
         }
 
         // title/description match: exact-ish full-text OR typo-tolerant word

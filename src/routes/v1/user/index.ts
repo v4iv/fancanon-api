@@ -645,6 +645,15 @@ app.get(
           where: eq(follow.followerId, userId),
           columns: { followerId: true, followeeId: true },
         },
+        userBadges: {
+          columns: { userId: false },
+          with: {
+            badge: {
+              columns: { criteria: false, active: false },
+            },
+          },
+          orderBy: (userBadge, { desc }) => [desc(userBadge.awardedAt)],
+        },
       },
     })
 
