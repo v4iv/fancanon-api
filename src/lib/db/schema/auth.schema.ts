@@ -16,6 +16,7 @@ import {
   readLater,
   report,
   story,
+  userBadge,
 } from '@/lib/db/schema'
 
 export const user = pgTable(
@@ -160,6 +161,9 @@ export const userRelations = relations(user, ({ many }) => ({
   reportsResolved: many(report, {
     relationName: 'reports_resolved',
   }),
+
+  // collectibles
+  userBadges: many(userBadge),
 }))
 
 export const sessionRelations = relations(session, ({ one }) => ({
