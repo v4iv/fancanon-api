@@ -153,6 +153,8 @@ const handler: ExportedHandler<CloudflareBindings, FanoutQueueMessage> = {
   },
 }
 
+export { app }
+
 export default withSentry(
   (env: CloudflareBindings) => ({
     dsn: env.SENTRY_DSN,
