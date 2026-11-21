@@ -3,7 +3,10 @@
   "name": "fancanon-api",
   "main": "src/index.ts",
   "compatibility_date": "2026-07-16",
-  "compatibility_flags": ["nodejs_compat", "nodejs_compat_populate_process_env"],
+  "compatibility_flags": [
+    "nodejs_compat",
+    "nodejs_compat_populate_process_env"
+  ],
   "workers_dev": true,
   "preview_urls": true,
   "assets": {
@@ -12,7 +15,10 @@
   "hyperdrive": [
     {
       "binding": "HYPERDRIVE",
-      "id": "686529197cab41778e9017a8c5fc2066",
+      // neon
+      // "id": "686529197cab41778e9017a8c5fc2066",
+      // supabase
+      "id": "0436bf780f3d4e48994dfff31287caf3",
       "localConnectionString": "postgres://root:mysecretpassword@localhost:5432/local",
     },
   ],
